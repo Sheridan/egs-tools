@@ -1,0 +1,13 @@
+{
+  "conf_path": "data",
+  "translation":
+  {
+    "src_language": "English",
+    "dst_language": "Russian"
+  },
+  "ollama":
+  {
+    "model": "translategemma:12b",
+    "url": "http://localhost:11434"
+  }
+}

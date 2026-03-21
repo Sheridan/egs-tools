@@ -1,14 +1,14 @@
 import csv
 
 class CCsv:
-  def __init__(self, filename, src_language_column, dst_language_column):
+  def __init__(self, filename, src_language, dst_language):
     self.filename = filename
-    self.src_language_column = src_language_column
-    self.dst_language_column = dst_language_column
     self.headers = None
     self.data = {}
     self.changed = False
     self._load()
+    self.src_language_column = self.head_title_index(src_language) - 1
+    self.dst_language_column = self.head_title_index(dst_language) - 1
 
   def _load(self):
     with open(self.filename, 'r', encoding='utf-8') as f:
@@ -43,6 +43,9 @@ class CCsv:
   def get(self, key, column):
     return self.data[key][column]
 
+  def keyExists(self, key):
+    return key in self.data
+
   def get_src_language(self, key):
     return self.get(key, self.src_language_column)
 
@@ -55,3 +58,10 @@ class CCsv:
 
   def set_dst_language(self, key, value):
     self.set(key, self.dst_language_column, value)
+
+  def head_title_index(self, name):
+    i = 0
+    for item in self.headers:
+      if item == name:
+        return i
+      i += 1

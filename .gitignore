@@ -1,5 +1,5 @@
-*.csv
-*.ecf
-*.txt
-*.yaml
+data
 __pycache__
+output/*.*
+!output/.keep
+trash
