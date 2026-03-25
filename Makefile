@@ -2,9 +2,10 @@
 translate:
 	python main.py --translation
 
-graph:
+dot:
 	python main.py --graph
-# 	cd output && neato -Tsvg -o output.svg -v main.dot
-# 	cd output && dot -Tsvg -o output.svg -v main.dot
-# 	cd output && fdp -Tsvg -o output.svg -v main.dot
-	cd output && circo -Tsvg -o output.svg -v main.dot
+
+graph: dot
+	cd output/graph && time dot -Tsvg -o main.svg -v main.dot
+# 	cd output && dot -Tpng -o main.png -v main.dot
+# 	cd output && dot -Tsvg -o main.svg -v main.dot

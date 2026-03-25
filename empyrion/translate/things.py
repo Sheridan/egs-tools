@@ -1,5 +1,4 @@
-import re
 
-class CGraphEntity:
+class CTranslateThings:
   def __init__(self):
     pass

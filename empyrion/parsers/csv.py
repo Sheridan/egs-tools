@@ -11,6 +11,7 @@ class CCsv:
     self.dst_language_column = self.head_title_index(dst_language) - 1
 
   def _load(self):
+    print(f"Loading {self.filename}")
     with open(self.filename, 'r', encoding='utf-8') as f:
       reader = csv.reader(f)
       self.headers = next(reader, None)

@@ -6,6 +6,7 @@ class CEcf:
     self.name = name
     self.key_field = key_field
     self.data = {}
+    self.name_index = []
     self.content = ""
     self.content_len = 0
     self.position = -1
@@ -14,6 +15,7 @@ class CEcf:
     self._parse()
 
   def _load(self):
+    print(f"Loading {self.filename}")
     with open(self.filename, 'r', encoding='utf-8') as f:
       self.content = f.read()
       self.content_len = len(self.content)
@@ -133,6 +135,9 @@ class CEcf:
     section = {}
     while char != '}':
       char = self._nextChar()
+      if self._isCommentStart():
+        self._skipComment()
+        continue
       if char.isspace():
         if section_type_parse and len(section_type) > 0:
           section_type_parse = False
@@ -159,6 +164,9 @@ class CEcf:
     subsection = {}
     while char != '}':
       char = self._nextChar()
+      if self._isCommentStart():
+        self._skipComment()
+        continue
       if char.isspace():
         if subsection_type_parse and len(subsection_type) > 0:
           subsection_type_parse = False
@@ -182,14 +190,16 @@ class CEcf:
   def _appendSubSection(self, type, name, content, section):
     if type not in section:
       section[type] = {}
-    if name not in section[type]:
-      section[type][name] = []
-    section[type][name].append(content)
+    section[type][name] = content
 
   def _appendSection(self, name, content):
     if name not in self.data:
-      self.data[name] = []
-    self.data[name].append(content)
+      self.data[name] = {}
+    # pprint.pprint(content)
+    section_key = content[self.key_field]
+    # if section_key not in self.name_index:
+    #   self.name_index.append(section_key)
+    self.data[name][section_key] = content
 
   def _parse(self):
     while not self._isEOF():
@@ -207,15 +217,24 @@ class CEcf:
     # pprint.pprint(self.data, indent=2, width=160)
 
   def names(self):
-    names = []
-    for section in self.data[self.name]:
-      # pprint.pprint(section, indent=2, width=160)
-      names.append(section[self.key_field])
-    return names
+    return self.data[self.name].keys()
+
+  def count(self):
+    return len(self.data[self.name].keys())
+
+  def hasName(self, key):
+    return key in self.data[self.name].keys()
+
+  def search(self, field, value):
+    result = []
+    for section_key in self.data[self.name].keys():
+      section = self.data[self.name][section_key]
+      if field in section and section[field] == value:
+        result.append(section)
+    return result
 
   def get(self, key):
-    for section in self.data[self.name]:
-      # pprint.pprint(section, indent=2, width=160)
-      if section[self.key_field] == key:
-        return section
+    if self.hasName(key):
+      # pprint.pprint(self.data[self.name][key])
+      return self.data[self.name][key]
     return None

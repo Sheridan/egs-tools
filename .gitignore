@@ -1,5 +1,7 @@
 data
 __pycache__
-output/*.*
+output/**/*.*
 !output/.keep
 trash
+*log
+output.prof

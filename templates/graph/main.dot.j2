@@ -1,0 +1,230 @@
+digraph {{ name | clean_node_name }} {
+  /* {{ name }} */
+  graph [ fontname="Ubuntu" fontsize="{{ fontsizes.default }}" fontcolor="{{ colors.font }}" bgcolor="{{ colors.background }}" fillcolor="{{ colors.fill }}"   concentrate=false layout="neato" maxiter=65536 overlap="prism" splines="spline" sep="+20" esep="+5" imagescale=true ];
+  node  [ fontname="Ubuntu" fontsize="{{ fontsizes.default }}" fontcolor="{{ colors.font }}" bgcolor="{{ colors.background }}" fillcolor="{{ colors.fill }}"   color="{{ colors.foreground }}"  shape="box"   style="filled"   margin="0.1" ];
+  edge  [ fontname="Ubuntu" fontsize="{{ fontsizes.default }}" fontcolor="{{ colors.font }}" color="{{ colors.foreground }}"   style="solid"                   penwidth="2"      len="3"        minlen="2" ];
+  /* nodes */
+  {% for node in nodes %}
+    {% set thing = node.data %}
+    {% set color_key = (thing.merged.Category  if 'Category'  in thing.merged else 'default') ~
+                       (thing.merged.Class     if 'Class'     in thing.merged else 'default') ~
+                       (thing.merged.IndexName if 'IndexName' in thing.merged else 'default') %}
+      node_{{ node.key | clean_node_name }} [ id="node_{{ node.key | clean_node_name }}" label=<
+        <table border="1" cellborder="1" cellpadding="0" cellspacing="0" title="{{ node.key | graphviz_escape}}">
+          {# +Main info #}
+          <tr>
+            <td align="center"><b><font point-size="{{ fontsizes.thing_caption }}">{{ thing.labels.caption | default(thing.things_keys.thing, true) | graphviz_escape  }}</font></b></td>
+          </tr>
+          <tr>
+            <td align="center">
+              <table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td href="#node_{{ node.key | clean_node_name }}" align="center" height="{{ iconsizes.main }}" width="{{ iconsizes.main }}" fixedsize="true"><img src="icons/{{ thing.icon }}.png" scale="true" /></td>
+                  {% if thing.labels.description %}
+                    <td align="text"><font point-size="{{ fontsizes.thing_description }}">{{ thing.labels.description | graphviz_escape | wordwrap(60, break_long_words=False, wrapstring='<br />')}}</font></td>
+                  {% endif %}
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {# +Main info #}
+          {# +neighbors #}
+          {% set neighbors_exists  = ('neighbors'  in thing and thing.neighbors )  %}
+          {% set references_exists = ('referenced' in thing and thing.referenced)  %}
+          {% set childs_exists     = ('childs'     in thing and thing.childs    )  %}
+          {% set max_columns_per_row = 4 if neighbors_exists or references_exists or childs_exists else 1 %}
+          {% if neighbors_exists or references_exists or childs_exists %}
+            {% for group in ['childs', 'neighbors', 'referenced'] %}
+              {% if group in thing and (thing[group] | length) > 0 %}
+              <tr>
+                <td align="center">
+                  <table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+                    <tr><td align="center" colspan="{{ max_columns_per_row }}">{{ group | capitalize }}</td></tr>
+                    {% for row in thing[group] | batch(max_columns_per_row) %}
+                      <tr>
+                        {% for group_thing in row %}
+                          <td align="center" height="{{ iconsizes.grid }}" width="{{ iconsizes.grid }}" fixedsize="true" title="{{ group_thing.labels.caption | default(group_thing.things_keys.thing, true) | graphviz_escape }}"><img src="icons/{{ group_thing.icon }}.png" scale="true" /></td>
+                        {% endfor %}
+                      </tr>
+                    {% endfor %}
+                  </table>
+                  </td>
+                </tr>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {# -neighbors #}
+          {# +Info #}
+          {% set infoFields = ['Category',
+                                'Class',
+                                'IndexName',
+                                'AllowPlacingAt',
+                                'StackSize',
+                                'HitPoints',
+                                'SizeInBlocks',
+                                'Mass',
+                                'Volume',
+                                'Durability',
+                                'CPUIn',
+                                'EnergyIn',
+                                'Damage',
+                                'BlastDamage',
+                                'BlastRadius',
+                                'MarketPrice',
+                                'DowngradeTo',
+                                'UpgradeTo',
+                                'Temperature',
+                                'ThrusterForce',
+                                'FoodDecayTime',
+                                'Credits',
+                                'XpFactor'] %}
+          {% set infoExists = namespace(count=0, exists=[]) %}
+          {% for infoField in infoFields %}
+            {% if infoField in thing.merged and ('display' not in thing.merged[infoField] or ('display' in thing.merged[infoField] and thing.merged[infoField].display == 'true')) %}
+              {% set infoExists.count = infoExists.count + 1 %}
+              {% set infoExists.exists = infoExists.exists + [infoField] %}
+            {% endif %}
+          {% endfor %}
+          {% if infoExists.count > 0 %}
+          <tr><td align="center"><font point-size="{{ fontsizes.lists_caption }}">Properties</font></td></tr>
+          <tr>
+            <td align="center">
+              <table border="0" cellborder="0" cellpadding="3" cellspacing="0" title="Info">
+              {% for row in infoExists.exists | batch(2) %}
+                <tr>
+                {% for infoField in row %}
+                  <td align="right">{{ infoField }}</td>
+                  {% if infoField in ['AmmoType', 'UpgradeTo', 'DowngradeTo'] %}
+                    {% set info_thing_key = thing.merged[infoField].value if 'value' in thing.merged[infoField] else thing.merged[infoField] %}
+                    {% set info_thing = info_thing_key | get_thing %}
+                    {% if info_thing %}
+                        <td align="left">
+                          <table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td href="#node_{{ info_thing["things_keys"]["thing"] | clean_node_name }}" align="center" width="{{ iconsizes.info }}" height="{{ iconsizes.info }}" fixedsize="true"><img src="icons/{{ info_thing.icon }}.png" scale="true" /></td>
+                            <td>{{ info_thing.labels.caption | default(info_thing.things_keys.thing) }}</td>
+                          </tr>
+                          </table>
+                        </td>
+                    {% endif %}
+                  {% else %}
+                      <td align="left">
+                        {%- if 'display' in thing.merged[infoField] -%}
+                          {{- thing.merged[infoField].value }} {{ thing.merged[infoField].formatter if 'formatter' in thing.merged[infoField] else '' -}}
+                        {%- else -%}
+                          {{- thing.merged[infoField] -}}
+                        {%- endif -%}
+                      </td>
+                  {% endif %}
+                {% endfor %}
+                </tr>
+              {% endfor %}
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+          {# -Info #}
+          {# +Weapon #}
+          {% if 'weapon' in thing %}
+            {% if thing.weapon.weapon_or_ammo == 'weapon' %}
+              {% if 'ammo' in thing.weapon and thing.weapon.ammo %}
+                {% set ammo_thing = thing.weapon.ammo %}
+                <tr><td align="center"><font point-size="{{ fontsizes.lists_caption }}">Ammo</font></td></tr>
+                <tr>
+                  <td>
+                    <table border="0" cellborder="0" cellpadding="3" cellspacing="0" title="Ammo">
+                      <tr>
+                        <td href="#node_{{ ammo_thing["things_keys"]["thing"] | clean_node_name }}" align="center" width="{{ iconsizes.weapon }}" height="{{ iconsizes.weapon }}" fixedsize="true"><img src="icons/{{ ammo_thing.icon }}.png" scale="true" /></td>
+                        <td>{{ ammo_thing.labels.caption | default(ammo_thing.things_keys.thing, true) | graphviz_escape }}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              {% endif %}
+            {% endif %}
+            {% if thing.weapon.weapon_or_ammo == 'ammo' %}
+              {% if 'weapon' in thing.weapon and thing.weapon.weapon %}
+                <tr><td align="center"><font point-size="{{ fontsizes.lists_caption }}">Weapons</font></td></tr>
+                <tr>
+                  <td>
+                    <table border="0" cellborder="0" cellpadding="3" cellspacing="4" title="Weapons">
+                    {% for row in thing.weapon.weapon | batch(3) %}
+                      <tr>
+                        {% for weapon_thing in row %}
+                        <td>
+                          <table border="0" cellborder="0" cellpadding="3" cellspacing="4" title="Weapons">
+                          <tr>
+                            <td href="#node_{{ weapon_thing["things_keys"]["thing"] | clean_node_name }}" align="center" width="{{ iconsizes.weapon }}" height="{{ iconsizes.weapon }}" fixedsize="true"><img src="icons/{{ weapon_thing.icon }}.png" scale="true" /></td>
+                          </tr>
+                          <tr>
+                            <td>{{ weapon_thing.labels.caption | default(weapon_thing.things_keys.thing, true) | graphviz_escape | wordwrap(20, break_long_words=False, wrapstring='<br />') }}</td>
+                          </tr>
+                          </table>
+                        </td>
+                        {% endfor %}
+                      </tr>
+                    {% endfor %}
+                    </table>
+                  </td>
+                </tr>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+          {# -Weapon #}
+          {# +Recipe #}
+          {% if thing.hasCrafting %}
+            {% set recipe = thing.recipe.Child.Inputs %}
+            <tr><td align="center"><font point-size="{{ fontsizes.lists_caption }}">Recipe, {{ recipe.items() | length }} ingridients</font></td></tr>
+            <tr>
+              <td align="center">
+                <table border="0" cellborder="0" cellpadding="3" cellspacing="0">
+                {% for row in recipe.items() | batch(6) %}
+                <tr>
+                {% for key, value in row %}
+                {% set recipe_thing = key | get_thing %}
+                  <td>
+                    <table border="0" cellborder="0" cellpadding="0" cellspacing="2" title="{{ recipe_thing.labels.caption | default(recipe_thing.things_keys.thing, true) | graphviz_escape }}">
+                      <tr>
+                        <td href="#node_{{ recipe_thing["things_keys"]["thing"] | clean_node_name }}" align="center" height="{{ iconsizes.recipe }}" width="{{ iconsizes.recipe }}" fixedsize="true"><img src="icons/{{ recipe_thing.icon }}.png" scale="true" /></td>
+                      </tr>
+                      <tr>
+                        <td align="center">{{ value }}</td>
+                      </tr>
+                    </table>
+                  </td>
+                {% endfor %}
+                </tr>
+                {% endfor %}
+                </table>
+              </td>
+            </tr>
+          {% endif %}
+          {# -Recipe #}
+          {# +Used in #}
+          {% if 'used_in' in thing %}
+          <tr><td align="center"><font point-size="{{ fontsizes.lists_caption }}">Used in {{ thing['used_in'] | length }} crafts</font></td></tr>
+            <tr>
+              <td align="center">
+                <table border="0" cellborder="0" cellpadding="3" cellspacing="0">
+                {% for row in thing['used_in'] | batch(5) %}
+                <tr>
+                  {% for used_in_thing in row %}
+                    <td title="{{ used_in_thing.labels.caption | default(used_in_thing.things_keys.thing, true) | graphviz_escape }}"
+                        href="#node_{{ used_in_thing["things_keys"]["thing"] | clean_node_name }}"
+                        align="center" height="{{ iconsizes.recipe }}" width="{{ iconsizes.recipe }}" fixedsize="true"><img src="icons/{{ used_in_thing.icon }}.png" scale="true" /></td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+                </table>
+              </td>
+            </tr>
+          {% endif %}
+          {# Used in #}
+        </table>
+    >, fillcolor="#{{ color_key | gen_color(lightness=0.5, saturation=0.55) }}"];
+  {% endfor %}
+  /* edges */
+  {% for edge in edges %}
+    node_{{ edge.key_from | clean_node_name }} -> node_{{ edge.key_to | clean_node_name }} [color="#{{ edge.key_from | gen_color(lightness=0.4, saturation=0.45) }}", arrowhead="empty", arrowtail="invempty", weight={{ edge.weight }}];
+  {% endfor %}
+}

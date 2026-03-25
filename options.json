@@ -9,5 +9,13 @@
   {
     "model": "translategemma:12b",
     "url": "http://localhost:11434"
-  }
+  },
+  "graph":
+  {
+    "neighbors": false,
+    "referenced": false,
+    "childs": true,
+    "used_in": true
+  },
+  "debug": false
 }

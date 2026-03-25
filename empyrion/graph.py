@@ -1,42 +1,35 @@
-
 import re
 import pprint
 
 from empyrion.graphviz.digraph import Cgraphviz
-from empyrion.definition import definition
+from empyrion.model.things import things
 from empyrion.translation import translation
+from empyrion.options import options
 
 class CGraph:
   def __init__(self):
     self.graphviz = Cgraphviz("main")
 
-  def translatedKey(self, key):
-    if translation.localization.keyExists(key):
-      text = translation.localization.get_src_language(key)
-      return re.sub(r'\[.*?\]', '', text).replace('\\n', ' ')
-    return key
 
-  def translatedItem(self, key):
-    caption = self.translatedKey(key)
-    description = self.translatedKey(f"{key}info")
-    return (caption, description)
-
-  def itemCanBeGraphed(self, item):
-    if "Target" not in item: return False
-    # if item['Target'] == '' or item['Target'] == '""': return False
-    return True
+  def _thingLog(self, thing):
+    print("------------------------------------------------------------------")
+    print(f"{thing['things_keys']['thing']}")
+    pprint.pprint(thing)
+    print("------------------------------------------------------------------")
 
   def construct(self):
-    for key in definition.templates.names():
-      item = definition.templates.get(key)
-      if self.itemCanBeGraphed(item):
-        captdesc = self.translatedItem(key)
-        print(f"{key}: {captdesc[0]} ({captdesc[1]})")
-        # pprint.pprint(item)
-        self.graphviz.addNode(key, "item")
-      if 'Child' in item and 'Inputs' in item['Child']:
-        for input in item['Child']['Inputs'][0].keys():
-          count = int(item['Child']['Inputs'][0][input])
+    for thing in things.things():
+      if options.get("debug", False):
+        self._thingLog(thing)
+      self.graphviz.addNode(thing['things_keys']['thing'], thing)
+      if thing['hasCrafting']:
+        for ingridient_key in thing['recipe']['Child']['Inputs'].keys():
+          count = int(thing['recipe']['Child']['Inputs'][ingridient_key])
           if count > 0:
-            self.graphviz.addEdge(key, input, 'item')
-      self.graphviz.render()
+#            self.copy_icon(src_icon_name, thing['things_keys']['thing'])
+            self.graphviz.addEdge(thing['things_keys']['thing'], ingridient_key, 1)
+      if 'weapon' in thing:
+        if thing['weapon']['weapon_or_ammo'] == 'weapon' and 'ammo' in thing['weapon'] and thing['weapon']['ammo']:
+          self.graphviz.addEdge(thing['things_keys']['thing'], thing['weapon']['ammo']['things_keys']['thing'], 3)
+
+    self.graphviz.render()
