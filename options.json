@@ -8,14 +8,6 @@
   },
   "ollama":
   {
-    "model_a": "translategemma:12b",
-    "model_b": "qwen3.5:4b",
-    "model_c": "gemma3:4b",
-    "model_d": "demonbyron/HY-MT1.5-1.8B:latest",
-    "model_e": "huihui_ai/hy-mt1.5-abliterated:7b",
-    "model_f": "qwen3:8b",
-    "model_g": "rinex20/translategemma3:12b",
-    "model_h": "gpt-oss",
     "models": {
       "wrongs_to_switch_to_smart": 2,
       "main": "translategemma:12b",
