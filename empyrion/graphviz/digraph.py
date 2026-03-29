@@ -3,7 +3,7 @@ from empyrion.graphviz.edge import CGraphEdge
 from empyrion.graphviz.node import CGraphNode
 from empyrion.graphviz.entity import CGraphEntity
 from empyrion.options import options
-from empyrion.templating import templating
+from empyrion.helpers.templating import templating
 
 class Cgraphviz(CGraphEntity):
   def __init__(self, name):
@@ -52,7 +52,7 @@ class Cgraphviz(CGraphEntity):
     print(f' Nodes: {len(self.nodes)}')
     print(f' Edges: {len(self.edges)}')
     with open(f"output/graph/{self.name}.dot", 'w', encoding='utf-8') as f:
-      f.write(templating.cleanString(templating.loadTemplate('graph', self.template_name).render(
+      f.write(templating.cleanString(templating.loadTemplate('graph', f"{self.template_name}.dot").render(
                     name=self.name,
                     nodes=self.prepareEntityesData(self.nodes),
                     edges=self.prepareEntityesData(self.edges),

@@ -1,6 +1,6 @@
 from empyrion.parsers.csv import CCsv
 from empyrion.options import options
-from empyrion.ollama import ollama
+
 import re
 
 class CTranslation:
@@ -14,23 +14,23 @@ class CTranslation:
   def __getitem__(self, key):
     return self.data[key]
 
-  def translateKey(self, key):
-    if self.data['localization'].keyExists(key):
+  def getLocalizationSrcLanguageText(self, key):
+    if self.data['localization'].exists(key):
       text = self.data['localization'].get_src_language(key)
       return re.sub(r'\[.*?\]', '', text).replace('\\n', ' ')
     return None
 
 
-  def _translate(self, what):
-    for key in what.keys():
-      src_text = what.get_src_language(key)
-      print(f"{key}: {src_text}")
-      translated = ollama.query(src_text)
-      print(translated)
+  # def _translate(self, what):
+  #   for key in what.keys():
+  #     src_text = what.get_src_language(key)
+  #     print(f"{key}: {src_text}")
+  #     translated = ollama.query(src_text)
+  #     print(translated)
 
-  def translate(self):
-    self._translate(self.data['localization'])
-    # print(self.localization.keys())
+  # def translate(self):
+  #   self._translate(self.data['localization'])
+  #   # print(self.localization.keys())
 
 
 translation = CTranslation(options.get("translation.src_language", "English"), options.get("translation.dst_language", "Russian"))

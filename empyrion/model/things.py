@@ -1,11 +1,13 @@
 import os
 import shutil
 import pprint
+import random
 import json
+from rich import print as rprint
 from empyrion.definition import definition
 from empyrion.translation import translation
 from empyrion.options import options
-from empyrion.objectcache import ObjectCache
+from empyrion.helpers.objectcache import ObjectCache
 
 class CCThings:
   def __init__(self):
@@ -45,14 +47,21 @@ class CCThings:
     self.exportIcon(icon)
     return icon
 
-  def _translateThing(self, thing):
+  def _thingSrcLanguageText(self, thing):
     description_key = f"{thing['things_keys']['thing']}info"
     if 'Info' in thing['merged']:
       description_key = thing['merged']['Info']['value'] if 'value' in thing['merged']['Info'] else thing['merged']['Info']
-    return {
-      'caption': translation.translateKey(thing['things_keys']['thing']),
-      'description': translation.translateKey(description_key)
+    labels = {
+      'caption': translation.getLocalizationSrcLanguageText(thing['things_keys']['thing']),
+      'description': translation.getLocalizationSrcLanguageText(description_key),
+      'labels_keys': {
+        'caption': thing['things_keys']['thing'],
+        'description': description_key
+      }
     }
+    if labels['caption'] or labels['description']:
+      return labels
+    return None
 
   def thingHasCrafting(self, thing):
     return ( 'recipe' in thing and
@@ -89,7 +98,7 @@ class CCThings:
         thing['merged'] = (thing['parent']['thing'] if 'parent' in thing and thing['parent'] else {}) | thing['thing']
         thing['hasCrafting'] = self.thingHasCrafting(thing)
         thing['icon'] = self.thingIcon(thing)
-        thing['labels'] = self._translateThing(thing)
+        thing['labels'] = self._thingSrcLanguageText(thing)
         return self._things_cache.set(cache_key, thing)
       return self._things_cache.set(cache_key, None)
     return self._things_cache.get(cache_key)
@@ -141,7 +150,7 @@ class CCThings:
     return None
 
   def _mineWeapon(self, thing):
-    print(f'Mining weapon data of {thing['merged']['Name']}...')
+    rprint(f'Mining weapon data of [magenta]{thing['merged']['Name']}[/magenta]...')
     weapon_item_key = None
     weapon_ammo_key = None
     weapon_or_ammo = None
@@ -185,12 +194,12 @@ class CCThings:
     return False
 
   def _getUsedIn(self, thing):
-    print(f'Mining thing {thing['merged']['Name']} used in recipes...')
+    rprint(f'Mining thing [yellow]{thing['merged']['Name']}[/yellow] used in recipes...')
     result = []
     if thing['things_keys']['thing'] in self._used_in_index:
       result = self._used_in_index[thing['things_keys']['thing']]
     if len(result) > 0:
-      print(f"Thing {thing['things_keys']['thing']} used in {len(result)} recipes")
+      rprint(f"Thing [yellow]{thing['things_keys']['thing']}[/yellow] used in [green]{len(result)}[/green] recipes")
       return result
     return None
 
@@ -273,7 +282,7 @@ class CCThings:
       return False
     return True
 
-  def things(self):
+  def things(self, include_all=False):
     result = []
     self._buildUsedInIndex()
     for block in ['blocksConfig', 'itemsConfig']:
@@ -281,15 +290,17 @@ class CCThings:
       block_current_record = 0
       for key in definition[block].names():
         block_current_record += 1
-        print(f'[{block}] [{block_current_record} of {block_total_records}] Mining key {key}...')
+        rprint(f'[ [red]{block}[/red] ] [ [yellow]{block_current_record} of {block_total_records}[/yellow] ] Mining key [green]{key}[/green]...')
         thing = self.getThing(key)
-        if self._canAddToThings(thing) and not self._isChild(thing):
+        if include_all or (self._canAddToThings(thing) and not self._isChild(thing)):
           # pprint.pprint(thing)
-          print(f'Appending {key} of block {block} to things render list...')
+          rprint(f'Appending [green]{key}[/green] of block [red]{block}[/red] to things render list...')
           result.append(thing)
-    print(f'Total things in things render list: {len(result)}')
-    with open("trash/data.json", "w", encoding="utf-8") as f:
+    rprint(f'Total things in list: [cyan]{len(result)}[/cyan]')
+    with open("trash/things.json", "w", encoding="utf-8") as f:
       json.dump(result, f, ensure_ascii=False, indent=4)
+    if options.get("debug", False):
+      random.shuffle(result)
     return result
 
 things = CCThings()

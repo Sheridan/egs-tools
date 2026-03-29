@@ -5,8 +5,8 @@ import hashlib
 import colorsys
 
 from empyrion.model.things import things
-from empyrion.translation import translation
-from empyrion.options import options
+# from empyrion.translation import translation
+# from empyrion.options import options
 
 def gen_color(text, lightness=0.75, saturation=0.7):
   """
@@ -53,7 +53,7 @@ class CTemplating:
     self.j2env.filters['clean_node_name'] = clean_node_name
 
   def loadTemplate(self, where, name):
-    with open(f"templates/{where}/{name}.dot.j2", 'r', encoding='utf-8') as f:
+    with open(f"templates/{where}/{name}.j2", 'r', encoding='utf-8') as f:
       return self.j2env.from_string(f.read().strip())
 
   def cleanString(self, string):

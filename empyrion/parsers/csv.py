@@ -1,68 +1,79 @@
 import csv
+from rich import print as rprint
+from empyrion.options import options
 
 class CCsv:
   def __init__(self, filename, src_language, dst_language):
-    self.filename = filename
-    self.headers = None
-    self.data = {}
-    self.changed = False
+    self._filename = filename
+    self._headers = None
+    self._data = {}
+    self._changed = False
     self._load()
-    self.src_language_column = self.head_title_index(src_language) - 1
-    self.dst_language_column = self.head_title_index(dst_language) - 1
+    self._src_language_column = self.head_title_index(src_language) - 1
+    self._dst_language_column = self.head_title_index(dst_language) - 1
+    self._set_queries = 0
 
   def _load(self):
-    print(f"Loading {self.filename}")
-    with open(self.filename, 'r', encoding='utf-8') as f:
+    rprint(f"Loading [bright_yellow]{self._filename}[/bright_yellow]")
+    with open(self._filename, 'r', encoding='utf-8') as f:
       reader = csv.reader(f)
-      self.headers = next(reader, None)
-      # print(self.headers)
+      self._headers = next(reader, None)
+      # print(self._headers)
 
-      if not self.headers:
-        raise ValueError(f"Пустой файл {self.filename}")
+      if not self._headers:
+        raise ValueError(f"Пустой файл {self._filename}")
 
       for row in reader:
-        self.data[row[0]] = row[1:]
+        for i in range(len(row), len(self._headers)):
+          row.append('')
+        self._data[row[0]] = row[1:]
 
   def save(self):
-    self.saveAs(self.filename)
+    self.saveAs(self._filename)
 
   def saveAs(self, filename):
     with open(filename, 'w', newline='') as f:
+      rprint(f"Saving [bright_yellow]{self._filename}[/bright_yellow]...")
       writer = csv.writer(f)
-      writer.writerow(self.headers)
-      # print(self.data)
-      for key in self.data.keys():
-        writer.writerow([key] + list(self.data[key]))
+      writer.writerow(self._headers)
+      # print(self._data)
+      for key in self._data.keys():
+        writer.writerow([key] + list(self._data[key]))
+    self._changed = False
 
-  def __del__(self):
-    if self.changed:
-      self.save()
+  #def __del__(self):
+  #  if self._changed:
+  #    self.save()
 
   def keys(self):
-    return list(self.data.keys())
+    return list(self._data.keys())
 
   def get(self, key, column):
-    return self.data[key][column]
+    return self._data[key][column]
 
-  def keyExists(self, key):
-    return key in self.data
+  def exists(self, key):
+    return key in self.keys()
 
   def get_src_language(self, key):
-    return self.get(key, self.src_language_column)
+    return self.get(key, self._src_language_column)
 
   def get_dst_language(self, key):
-    return self.get(key, self.dst_language_column)
+    return self.get(key, self._dst_language_column)
 
   def set(self, key, column, value):
-    self.data[key][column] = value
-    self.changed = True
+    self._data[key][column] = value
+    self._changed = True
+    self._set_queries += 1
+    if self._set_queries >= options.get("translation.save_every_nth_query", 10):
+      self.save()
+      self._set_queries = 0
 
   def set_dst_language(self, key, value):
-    self.set(key, self.dst_language_column, value)
+    self.set(key, self._dst_language_column, value)
 
   def head_title_index(self, name):
     i = 0
-    for item in self.headers:
+    for item in self._headers:
       if item == name:
         return i
       i += 1

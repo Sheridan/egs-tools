@@ -1,4 +1,5 @@
 import pprint
+from rich import print as rprint
 
 class CEcf:
   def __init__(self, filename, name, key_field):
@@ -15,7 +16,7 @@ class CEcf:
     self._parse()
 
   def _load(self):
-    print(f"Loading {self.filename}")
+    rprint(f"Loading [bright_magenta]{self.filename}[/bright_magenta]")
     with open(self.filename, 'r', encoding='utf-8') as f:
       self.content = f.read()
       self.content_len = len(self.content)
