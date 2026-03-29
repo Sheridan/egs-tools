@@ -17,11 +17,37 @@ I take data from the original game files. These are `*.ecf` files from `Content/
 Only translation files (`*.csv`) are modified, the other files are needed for building context.
 ```
 $ tree -d ./data
+$ tree data | egrep -v '(png)'
 data
 ├── Content
 │   └── Configuration
+│       ├── BlockGroupsConfig.ecf
+│       ├── BlocksConfig.ecf
+│       ├── Containers.ecf
+│       ├── DamageMultiplierConfig.ecf
+│       ├── DefReputation.ecf
+│       ├── Dialogues.csv
+│       ├── Dialogues.ecf
+│       ├── EClassConfig.ecf
+│       ├── EGroupsConfig.ecf
+│       ├── FactionWarfare.ecf
+│       ├── Factions.ecf
+│       ├── GalaxyConfig.ecf
+│       ├── GlobalDefsConfig.ecf
+│       ├── ItemsConfig.ecf
+│       ├── LootGroups.ecf
+│       ├── MaterialConfig.ecf
+│       ├── SqlQueries.txt
+│       ├── StatusEffects.ecf
+│       ├── Templates.ecf
+│       ├── TokenConfig.ecf
+│       ├── TraderNPCConfig.ecf
+│       └── Using Modified Configs READ FIRST.txt
 ├── Extras
+│   ├── Localization.csv
 │   └── PDA
+│       ├── PDA.csv
+│       └── PDA.yaml
 └── SharedData
     └── Content
         └── Bundles
