@@ -1,7 +1,5 @@
 import argparse
 
-# Класс для парсинга опций командной строки
-
 class CArguments:
   def __init__(self):
     self.parser = argparse.ArgumentParser(description='Empyrion RE2 Tools')

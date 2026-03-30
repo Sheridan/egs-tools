@@ -1,19 +1,21 @@
 import pprint
+import re
 from rich import print as rprint
 from empyrion.model.pda import CPda
 from empyrion.translate.translate import CTranslate
+from empyrion.state.state import state
+from empyrion.helpers.strings import text_for_context, is_untranslated_string
 
 class CTranslatePda(CTranslate):
   def __init__(self):
-    super().__init__('pda', 'pda')
+    super().__init__('pda')
 
   def _translatePdaOne(self, what, key, context):
     text = self._translation.get_src_language(key)
-    if text in ['===']:
-      rprint(f'{self._translationProgress()} [bold green]{what} {key} no need translation[/bold green]')
-      self.addToState(key)
+    if is_untranslated_string(text):
+      rprint(f'{self._translationProgress()} [green]{what} [bold]{key}[/bold] no need translation[/green]')
       self._incrementTranslated()
-      return
+      state.appendTranslateState(self._translation_file, key, text)
     self._translateOne(what, key, context)
 
   def _context(self, title, group):
@@ -21,13 +23,13 @@ class CTranslatePda(CTranslate):
     if 'category' in group:
       context[f'{title}']['category'] = group['category']
     if 'group' in group:
-      context[f'{title}']['group'] = self.removeTags(self._translation.get_src_language(group['group']))
+      context[f'{title}']['group'] = text_for_context(self._translation.get_src_language(group['group']))
     if 'title' in group:
-      context[f'{title}']['title'] = self.removeTags(self._translation.get_src_language(group['title']))
+      context[f'{title}']['title'] = text_for_context(self._translation.get_src_language(group['title']))
     if 'messages' in group:
       i = 0
       for message in group['messages']:
-        context[f'{title}'][f'message {i}'] = self.removeTags(self._translation.get_src_language(message))
+        context[f'{title}'][f'message {i}'] = text_for_context(self._translation.get_src_language(message))
         i += 1
     return context
 

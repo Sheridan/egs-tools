@@ -1,14 +1,8 @@
-# from empyrion.translation import translation
-# from empyrion.definition import definition
 from empyrion.arguments import CArguments
 from empyrion.graph import CGraph
 from empyrion.translate.things import CTranslateThings
 from empyrion.translate.dialogs import CTranslateDialogs
 from empyrion.translate.pda import CTranslatePda
-# from empyrion.translation import translation
-# from empyrion.options import options
-
-import pprint
 
 def main():
   args = CArguments()
@@ -17,6 +11,7 @@ def main():
       CTranslateThings().translate()
       CTranslateDialogs().translate()
       CTranslatePda().translate()
+
   if args.isGraph():
       print("Graph mode enabled")
       graph = CGraph()

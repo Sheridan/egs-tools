@@ -1,4 +1,5 @@
 import csv
+import re
 from rich import print as rprint
 from empyrion.options import options
 
@@ -11,7 +12,7 @@ class CCsv:
     self._load()
     self._src_language_column = self.head_title_index(src_language) - 1
     self._dst_language_column = self.head_title_index(dst_language) - 1
-    self._set_queries = 0
+    # self._set_queries = 0
 
   def _load(self):
     rprint(f"Loading [bright_yellow]{self._filename}[/bright_yellow]")
@@ -33,7 +34,7 @@ class CCsv:
 
   def saveAs(self, filename):
     with open(filename, 'w', newline='') as f:
-      rprint(f"Saving [bright_yellow]{self._filename}[/bright_yellow]...")
+      rprint(f"[blue]Saving {self._filename}[/blue]...")
       writer = csv.writer(f)
       writer.writerow(self._headers)
       # print(self._data)
@@ -63,10 +64,10 @@ class CCsv:
   def set(self, key, column, value):
     self._data[key][column] = value
     self._changed = True
-    self._set_queries += 1
-    if self._set_queries >= options.get("translation.save_every_nth_query", 10):
-      self.save()
-      self._set_queries = 0
+    # self._set_queries += 1
+    # if self._set_queries >= options.get("translation.save_every_nth_query", 10):
+    #   self.save()
+    #   self._set_queries = 0
 
   def set_dst_language(self, key, value):
     self.set(key, self._dst_language_column, value)

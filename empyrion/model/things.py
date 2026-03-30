@@ -4,10 +4,10 @@ import pprint
 import random
 import json
 from rich import print as rprint
-from empyrion.definition import definition
-from empyrion.translation import translation
+from empyrion.datasource.datasource import datasource
 from empyrion.options import options
 from empyrion.helpers.objectcache import ObjectCache
+from empyrion.helpers.strings import text_for_graph_labels
 
 class CCThings:
   def __init__(self):
@@ -16,6 +16,12 @@ class CCThings:
     self.output_path = "output/graph/icons"
     self._used_in_index = {}
     self._things_cache = ObjectCache()
+    self._localization = datasource['localization']
+
+  def get_src_language(self, key):
+    if self._localization.exists(key):
+      return text_for_graph_labels(self._localization.get_src_language(key))
+    return None
 
   def exportIcon(self, name):
     dst_filename = f"{self.output_path}/{name}.png"
@@ -52,8 +58,8 @@ class CCThings:
     if 'Info' in thing['merged']:
       description_key = thing['merged']['Info']['value'] if 'value' in thing['merged']['Info'] else thing['merged']['Info']
     labels = {
-      'caption': translation.getLocalizationSrcLanguageText(thing['things_keys']['thing']),
-      'description': translation.getLocalizationSrcLanguageText(description_key),
+      'caption': self.get_src_language(thing['things_keys']['thing']),
+      'description': self.get_src_language(description_key),
       'labels_keys': {
         'caption': thing['things_keys']['thing'],
         'description': description_key
@@ -77,12 +83,12 @@ class CCThings:
     recipeKey = key
     if 'TemplateRoot' in raw:
       recipeKey = raw['TemplateRoot']
-    return (definition['templates'].get(recipeKey), recipeKey)
+    return (datasource['templates'].get(recipeKey), recipeKey)
 
   def _getThing(self, block, key):
     cache_key = f"{block}_{key}"
     if not self._things_cache.contains(cache_key):
-      raw = definition[block].get(key)
+      raw = datasource[block].get(key)
       if raw:
         thing = { 'thing': raw,
                   'source': block,
@@ -105,7 +111,7 @@ class CCThings:
 
   def _searchByKey(self, keyname, thing):
     childs = []
-    for child in definition[thing['source']].search(keyname, thing['things_keys']['thing']):
+    for child in datasource[thing['source']].search(keyname, thing['things_keys']['thing']):
       child_thing = self._getThing(thing['source'], child['Name'])
       if child_thing:
         childs.append(child_thing)
@@ -114,13 +120,13 @@ class CCThings:
     return None
 
   def _weaponAmmoKeyFromWeaponItemKey(self, weapon_item_key):
-    raw = definition['itemsConfig'].get(weapon_item_key)
+    raw = datasource['itemsConfig'].get(weapon_item_key)
     if raw and 'Child' in raw and '0' in raw['Child'] and 'AmmoType' in raw['Child']['0']:
       return raw['Child']['0']['AmmoType']['value']
     return None
 
   def _thisAmmoForThisWeapon(self, weapon_ammo_key, weapon_item_key):
-    raw = definition['itemsConfig'].get(weapon_item_key)
+    raw = datasource['itemsConfig'].get(weapon_item_key)
     return ( raw and
             'Category' in raw and raw['Category'] == 'Weapons/Items' and
             'Child' in raw and '0' in raw['Child']
@@ -128,9 +134,9 @@ class CCThings:
             raw['Child']['0']['AmmoType']['value'] == weapon_ammo_key)
 
   def _weaponItemKeyFromWeaponAmmoKey(self, weapon_ammo_key):
-    for key in definition['itemsConfig'].names():
+    for key in datasource['itemsConfig'].names():
       if self._thisAmmoForThisWeapon(weapon_ammo_key, key):
-        return definition['itemsConfig'].get(key)['Name']
+        return datasource['itemsConfig'].get(key)['Name']
     return None
 
   def _mineWeaponAmmo(self, weapon_item_key):
@@ -142,7 +148,7 @@ class CCThings:
   def _mineAmmoWeapon(self, weapon_ammo_key):
     weapons = []
     if weapon_ammo_key:
-      for key in definition['itemsConfig'].names():
+      for key in datasource['itemsConfig'].names():
         if self._thisAmmoForThisWeapon(weapon_ammo_key, key):
           weapons.append(self._getThing('itemsConfig', key))
     if len(weapons) > 0:
@@ -210,7 +216,7 @@ class CCThings:
 
   def _buildUsedInIndex(self):
     for block in ['blocksConfig', 'itemsConfig']:
-      for key in definition[block].names():
+      for key in datasource[block].names():
         thing = self._getThing(block, key)
         if thing and self._canAddToThings(thing) and not self._isChild(thing) and thing['hasCrafting']:
           thing_recipe = self._thingRecipe(thing)
@@ -261,8 +267,8 @@ class CCThings:
   def _isChild(self, thing):
     if thing['source'] == 'blocksConfig':
       for block in ['blocksConfig']:
-        for key in definition[block].names():
-          raw = definition[block].get(key)
+        for key in datasource[block].names():
+          raw = datasource[block].get(key)
           if raw and 'ChildBlocks' in raw:
             for child_key in raw['ChildBlocks'].strip('"').split(','):
               if thing['merged']['Name'] == child_key.strip():
@@ -286,9 +292,9 @@ class CCThings:
     result = []
     self._buildUsedInIndex()
     for block in ['blocksConfig', 'itemsConfig']:
-      block_total_records = definition[block].count()
+      block_total_records = datasource[block].count()
       block_current_record = 0
-      for key in definition[block].names():
+      for key in datasource[block].names():
         block_current_record += 1
         rprint(f'[ [red]{block}[/red] ] [ [yellow]{block_current_record} of {block_total_records}[/yellow] ] Mining key [green]{key}[/green]...')
         thing = self.getThing(key)

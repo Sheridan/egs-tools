@@ -6,30 +6,45 @@ from rich import print as rprint
 from rich.console import Console
 from rich.table import Table
 from rich.markup import escape
-from empyrion.ollama import COllama
+from empyrion.ollama import COllama, СOllamaError
 from empyrion.helpers.templating import CTemplating
-from empyrion.helpers.state import StateStorage
 from empyrion.options import options
 from empyrion.helpers.tagcomparator import TagComparator
-from empyrion.translation import translation
+from empyrion.translate.lexicon.glossary import CGlossary
+from empyrion.translate.lexicon.characters import CCharacters
+from empyrion.translate.lexicon.examples import CExamples
+from empyrion.datasource.datasource import datasource
+from empyrion.state.state import state
+from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines
 
 class CTranslate:
-  def __init__(self, state_name, translation_file):
-    self._translation = translation[translation_file]
+  def __init__(self, translation_file):
+    self._translation_file = translation_file
+    self._translation = datasource[self._translation_file]
     self._llm = COllama()
     self._templating = CTemplating()
-    self._state = StateStorage(f"trash/translate_{state_name}.state")
     self._sleep_on_error = 8
     self._src_language=options.get("translation.src_language", "English")
     self._dst_language=options.get("translation.dst_language", "Russian")
     self._wrongs_to_switch_to_smart = options.get("ollama.models.wrongs_to_switch_to_smart", 4)
-    self._glossary = self._loadGlossary()
+    self._glossary = CGlossary()
+    self._characters = CCharacters()
+    self._examples = CExamples()
     self._wrong_translate = []
     self._wrongs_count = 0
     self._counts = {
       'total': 0,
       'translated': 0
     }
+    self._save_event_counter = 0
+    self._save_event_max = options.get("translation.save_every_nth_query", 10)
+
+  def _checkNeedToSave(self):
+    self._save_event_counter += 1
+    if self._save_event_counter >= self._save_event_max:
+      self._translation.save()
+      state.save()
+      self._save_event_counter = 0
 
   def _setTotalStrings(self, total):
     self._counts['total'] = total
@@ -39,10 +54,6 @@ class CTranslate:
 
   def _translationProgress(self):
     return f"|[yellow]{self._counts['translated'] + 1} of {self._counts['total']}[/yellow]|"
-
-  def _loadGlossary(self):
-    with open(f'glossary/{self._dst_language}.json', 'r', encoding='utf-8') as f:
-        return json.load(f)
 
   def _queryLog(self, query, current):
     if options.get("debug", False):
@@ -75,20 +86,8 @@ class CTranslate:
   def _countEnglishEetters(self, text):
     return sum(1 for c in text if 'a' <= c <= 'z' or 'A' <= c <= 'Z')
 
-  def removeTags(self, text):
-    # return text
-    text = re.sub(r'\[.*?\]', '', text)
-    text = re.sub(r'<.*?>', '', text)
-    return text
-
-  def addToState(self, key):
-    self._state.set(key)
-
-  def inState(self, key):
-    return self._state.exists(key)
-
   def _prepareText(self, text):
-    return text.replace('\\n', '\n').strip()
+    return replace_literals_newlines_by_newlines(text).strip()
 
   def _fixResponse(self, text, response):
     for char in ['\n', '.']:
@@ -97,7 +96,7 @@ class CTranslate:
     for char in ['>', ']']:
       if text[-1] == char and response[-1] != char:
         response += char
-    return response.replace('\n', '\\n').strip()
+    return replace_newlines_by_literals_newlines(response).strip()
 
   def _addToWrongs(self, result, reason):
     rprint(f'[bright_red]Wrong translate. {reason}[/bright_red]')
@@ -134,46 +133,43 @@ class CTranslate:
       return None
     return result
 
-  def _filteredGlossary(self, text):
-    filtered = {}
-    l_text = text.lower()
-    for group in self._glossary.keys():
-      for key in self._glossary[group].keys():
-        for key_word in key.lower().split():
-          if key_word in l_text:
-            filtered[key] = self._glossary[group][key]
-    # pprint.pprint(filtered)
-    return filtered
-
   def _findAndTranslateSame(self, src_language_text, dst_language_text):
     for key in self._translation.keys():
-      if not self.inState(key):
-        src_text = self._translation.get_src_language(key)
+      src_text = text_for_translate(self._translation.get_src_language(key))
+      if not state.isTranslated(self._translation_file, key, src_text):
         if src_text.strip() == src_language_text.strip():
           self._translation.set_dst_language(key, dst_language_text)
-          self.addToState(key)
-          # self._incrementTranslated()
+          state.appendTranslateState(self._translation_file, key, src_text)
+          self._checkNeedToSave()
           rprint(f'[magenta]Same text found and translate in [bold]{key}[/bold][/magenta]')
 
   def _translateOne(self, what, key, context):
-    # rprint(context)
-    if self.inState(key):
+    if not self._translation.exists(key):
+      rprint(f'{self._translationProgress()} [red]{what.title()} [bold]{key} not exists in translation file![/bold][/red]')
+      self._incrementTranslated()
+      return
+
+    text = text_for_translate(self._translation.get_src_language(key))
+    if state.isTranslated(self._translation_file, key, text):
       rprint(f'{self._translationProgress()} [green]{what.title()} [bold]{key}[/bold] already translated[/green]')
       self._incrementTranslated()
       return
-    if self._translation.exists(key):
-      rprint(f'{self._translationProgress()} [green]Translating {what} [bold]{key}[/bold][/green]')
-      text = self._translation.get_src_language(key)
-      result = self._translate(context, text)
-      self.addToState(key)
-      self.translateLog(text, self._translation.get_dst_language(key), result)
-      self._translation.set_dst_language(key, result)
-      self._incrementTranslated()
-      self._findAndTranslateSame(text, result)
+
+    rprint(f'{self._translationProgress()} [green]Translating {what} [bold]{key}[/bold][/green]')
+    result = self._translate(context, text)
+    state.appendTranslateState(self._translation_file, key, text)
+    self.translateLog(text, self._translation.get_dst_language(key), result)
+    self._translation.set_dst_language(key, result)
+    self._incrementTranslated()
+    self._checkNeedToSave()
+    self._findAndTranslateSame(text, result)
+    state.showTranslateState()
 
   def _translate(self, context, text):
     result = None
-    glossary = self._filteredGlossary(text)
+    glossary = self._glossary.filterByText(text)
+    characters = self._characters.filterByText(text)
+    examples = self._examples.filterByText(text)
     while result is None:
       try:
         prepared_text = self._prepareText(text)
@@ -182,6 +178,8 @@ class CTranslate:
             src_language=self._src_language,
             dst_language=self._dst_language,
             glossary=glossary,
+            characters=characters,
+            examples=examples,
             text=prepared_text,
             wrongs=self._wrong_translate
           )
@@ -193,7 +191,7 @@ class CTranslate:
         if result is not None:
           self._resetWrongs()
           self._llm.switchToMainModel()
-      except Exception as e:
+      except СOllamaError as e:
         rprint(f"[red]LLM query failed: {escape(str(e))}. Retrying in {self._sleep_on_error} seconds...[/red]")
         time.sleep(self._sleep_on_error)
     return self._fixResponse(text, result)

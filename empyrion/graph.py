@@ -3,13 +3,11 @@ import pprint
 
 from empyrion.graphviz.digraph import Cgraphviz
 from empyrion.model.things import things
-from empyrion.translation import translation
 from empyrion.options import options
 
 class CGraph:
   def __init__(self):
     self.graphviz = Cgraphviz("main")
-
 
   def _thingLog(self, thing):
     print("------------------------------------------------------------------")

@@ -14,7 +14,7 @@
       "smart": "gpt-oss"
     },
     "url": "http://localhost:11434",
-    "timeout": 1800,
+    "timeout": 3600,
     "temperature": 0.1,
     "top_p": 0.9
   },

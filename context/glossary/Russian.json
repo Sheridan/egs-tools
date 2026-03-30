@@ -27,7 +27,10 @@
     "shipment"            : "посылка",
     "spawn point"         : "точка возрождения",
     "toolbar"             : "панель инструментов",
-    "vernier"             : "верньерный"
+    "vernier"             : "верньерный",
+    "outpost"             : "аванпост",
+    "warp to"             : "варп-прыжок в",
+    "trigger"             : "триггер"
   },
   "Vesseld and base":
   {
@@ -94,6 +97,7 @@
     "pyrolusite": "пиролюзит",
     "sathium"   : "сатий",
     "silicon"   : "кремний",
+    "iron ore"  : "железная руда",
     "voidium"   : "пустоний",
     "zascosium" : "заскосий",
     "gold coin" : "золотая монета",
@@ -185,7 +189,13 @@
     "water extractor"      : "водяной насос",
     "xeno"                 : "ксено",
     "xenomatter"           : "ксеновещество",
-    "xenosteel"            : "ксеносталь"
+    "xenosteel"            : "ксеносталь",
+    "cruise missile"       : "крылатая ракета",
+    "blaster cannon"       : "бластерное орудие",
+    "laser cannon"         : "лазерное орудие",
+    "hard light"           : "жёсткое излучение",
+    "mounted weapons"      : "стационарное вооружение",
+    "homing weapons"       : "самонаводящееся вооружение"
   },
   "Abbreviation":
   {
@@ -354,7 +364,9 @@
     "Enforcer"                    : "Исполнитель",
     "Mobster"                     : "Гангстер",
     "manufacturing foreman"       : "мастер производства",
-    "remote worker"               : "фрилансер"
+    "remote worker"               : "фрилансер",
+    "quartermaster"               : "интендант",
+    "huntmaster"                  : "мастер охоты"
   }
 
 }

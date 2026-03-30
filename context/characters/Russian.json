@@ -1,0 +1,52 @@
+{
+  "groups":
+  {
+
+  },
+  "characters":
+  {
+    "ida":
+    {
+      "keywords": ["ida", "i.d.a"],
+      "gender": "female",
+      "characteristic":
+      [
+        "artificial intelligence",
+        "communicates respectfully",
+        "considers the player a commander",
+        "likes to joke"
+      ]
+    },
+    "terminal":
+    {
+      "keywords": ["terminal", "console"],
+      "gender": "male",
+      "characteristic":
+      [
+        "there are hints of the existence of intelligence",
+        "dry communication",
+        "does not show emotions"
+      ]
+    },
+    "administrator":
+    {
+      "keywords": ["administrator", "administrative", "administration"],
+      "gender": "male",
+      "characteristic":
+      [
+        "always very busy",
+        "thoughtful"
+      ]
+    },
+    "criminal":
+    {
+      "keywords": ["bandit", "pirat", "smuggler"],
+      "gender": "male",
+      "characteristic":
+      [
+        "dangerous",
+        "rude"
+      ]
+    }
+  }
+}

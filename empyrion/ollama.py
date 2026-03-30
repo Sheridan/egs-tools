@@ -1,13 +1,17 @@
 import requests
 import sys
 import pprint
+import os
 from rich import print as rprint
 from rich.console import Console
 from rich.table import Table
 from rich.markup import escape
 from empyrion.options import options
 from empyrion.helpers.timer import Timer
+from empyrion.state.state import state
 
+class СOllamaError(Exception):
+  pass
 
 class COllama:
   def __init__(self):
@@ -26,6 +30,7 @@ class COllama:
     if not self.isAlive():
       sys.exit("Ollama is not ready")
 
+
   def isAlive(self):
     try:
       response = requests.get(f"{self._url}/api/tags", timeout=5)
@@ -40,26 +45,10 @@ class COllama:
     self._model = self._models['main']
 
   def printStat(self, result):
-    q_time = self._timer.get()
-    table = Table(expand=True)
-    table.add_column("Query time"   , style="yellow"        )
-    table.add_column("Query tokens" , style="bright_magenta")
-    table.add_column("Reply tokens" , style="bright_cyan"   )
-    table.add_column("Mean time"    , style="magenta"       )
-    table.add_column("Median time"  , style="magenta"       )
-    table.add_column("Min time"     , style="green"         )
-    table.add_column("Max time"     , style="green"         )
-    table.add_column("Total time"   , style="bright_red"    )
-    table.add_column("Total queries", style="red"           )
-    table.add_row(str(q_time['elapsed']          ),
-                  str(result['prompt_eval_count']),
-                  str(result['eval_count']       ),
-                  str(q_time['mean']             ),
-                  str(q_time['median']           ),
-                  str(q_time['min']              ),
-                  str(q_time['max']              ),
-                  str(q_time['total']            ),
-                  str(q_time['count']            ))
+    table = Table()
+    table.add_column("Tokens in", style="green4")
+    table.add_column("Tokens out", style="turquoise4")
+    table.add_row(str(result['prompt_eval_count']), str(result['eval_count']))
     Console().print(table)
     if 'thinking' in result:
       table = Table(expand=True)
@@ -85,14 +74,13 @@ class COllama:
         timeout=self._timeout
       )
       response.raise_for_status()
-      self._timer.stop()
+      elapsed = self._timer.stop()
       result = response.json()
+      state.appendLLMQueryState(self._model, elapsed, result['prompt_eval_count'], result['eval_count'])
       self.printStat(result)
-      # result.pop('context', None)
-      # if options.get("debug", False):
-      #   rprint(result)
+      state.showLLMState()
       return result.get("response", "")
     except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
-      raise Exception(f"Ollama query error: {str(e)}")
+      raise СOllamaError(f"Ollama query error: {str(e)}")
 
 # ollama = COllama()

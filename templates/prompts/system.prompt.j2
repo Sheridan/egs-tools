@@ -15,45 +15,57 @@ Core Rules:
 - Never translate or include content from <context>, <example> blocks. Translate only the exact text provided after the final instruction.
 - The text in an untranslatable language should be left as it is.
 
-Examples of tags used:
+Examples of tags used in text:
 - html/xml tags: `<tag>...</tag>`
 - bbcode tags: `[tag]...[/tag]`
 - color tags: `[color]...[-]` or `<color=#color>...</color>`
 
-Examples of placeholders used:
+Examples of placeholders used in text:
 - `{placeholder}`
 
-Using tags example:
+{# Correct and wrong examples #}
+{% if examples.keys() | length > 0 -%}
+{%-  if 'tags' in examples -%}
+Examples of correct and wrong use of tags: {{- "\n" }}
+{%-    for example in examples['tags'] -%}
 <example>
-Original: `{{ src_language }} [c][000000]string[-][/c] with tags`
-Correct: `{{ dst_language }} [c][000000]string[-][/c] with tags`
-Wrong: `{{ dst_language }} [c][000000]string[/c] with tags`
-Wrong: `[tag]{{ dst_language }} [c][000000]string[-][/c] with tags[/tag]`
-Wrong: `{{ dst_language }} [c][000000]string[-][/c] with <i>tags</i>`
-</example>
-<example>
-Original: `<tag>{{ src_language }} string with tags</tag>`
-Correct: `<tag>{{ dst_language }} string with tags</tag>`
-Wrong: `{{ dst_language }} string with tags`
-</example>
-<example>
-Original: `<tag_a><tag_b>{{ src_language }} string with tags</tag_b></tag_a>`
-Correct: `<tag_a><tag_b>{{ dst_language }} string with tags</tag_b></tag_a>`
-Wrong: `<tag_a<tag_b>{{ dst_language }} string with tags</tag_a>`
-Wrong: `<tag_a<tag_b>{{ dst_language }} string with tags</tag_b></tag_a>`
-Wrong: `<tag_a><tag_b>{{ dst_language }} string with tags</tag_a></tag_b>`
-Wrong: `<tag_a><tag_b>{{ dst_language }} string with tags</tag_b</tag_a>`
-</example>
+Original string: "{{ example['original'] }}" {{- "\n" }}
+{%-      for correct in example['correct'] -%}
+Correct: "{{ correct }}" {{- "\n" }}
+{%-      endfor -%}
+{%-      for wrong in example['wrong'] -%}
+Wrong: "{{ wrong }}" {{- "\n" }}
+{%-      endfor -%}
+</example> {{- "\n" }}
+{%-    endfor -%}
+{%-  endif -%}
+{%- endif %}
 
+{# Glossary #}
 {% if glossary | length > 0 -%}
 Use phrases from the glossary:
 <glossary> {{- "\n" }}
-{%- for key,value in glossary.items() -%}
+{%- for key, value in glossary.items() -%}
 {{ key }} : {{ value }} {{- "\n" }}
 {%- endfor -%}
 </glossary> {{- "\n" }}
 {%- endif %}
 
+{# Characters #}
+{% if characters.keys() | length > 0 -%}
+Search for phrases of characters in the text, identify their names and give the characters characteristics:
+<characters> {{- "\n" }}
+{%- for key, value in characters.items() -%}
+<{{ key }}>
+Original names: {{ value['keywords'] | join(", ") }}
+Original gender: {{ value['gender'] }}
+Original characteristic: {{ value['characteristic'] | join(", ") }}
+</{{ key }}>
+{%- endfor -%}
+</characters> {{- "\n" }}
+{%- endif %}
+
+{# Context #}
 {% set contexts = namespace(exists=[]) -%}
 {%- for part in context.keys() -%}
 {%-   if context[part] | length > 0 -%}

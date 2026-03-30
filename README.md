@@ -54,7 +54,7 @@ data
             └── ItemIcons
 ```
 ### Glossary
-The glossary is a json file of the following format:
+Path: `context/glossary`. The glossary is a json file of the following format:
 ```json
 {
   "topic1":
@@ -73,11 +73,60 @@ The glossary is a json file of the following format:
 ```
 Topic names don't matter and are made exclusively for convenient grouping of terms. Just fill in the glossary for your language minimally to start. Then, as you translate, supplement it with terms that the LLM translates incorrectly.
 
+### Characters
+Path: `context/characters`. Here you can describe game characters for more accurate translation. The file format is as follows:
+```json
+{
+  "characters":
+  {
+    "name":
+    {
+      "keywords": ["possible", "encountered", "character names"],
+      "gender": "male, female, other",
+      "characteristic":
+      [
+        "character characteristic one",
+        "character characteristic two",
+        "for example, 'likes to joke'"
+      ]
+    },
+    ...
+  }
+}
+```
+The script attempts to find character mentions in the text, focusing on the `keywords` field, and if found - adds information about the character to the LLM prompt. In theory, it should work...
+
+### "Correct/Incorrect" Examples
+Path: `context/examples`. Here you can describe examples for the LLM on how to format text correctly. Since this additionally requires code changes, for now this can only be configured for tags. The file format is as follows:
+```json
+{
+  "tags":
+  [
+    {
+      "original": "Original string",
+      "correct":
+      [
+        "Correct processing example one",
+        "Correct processing example two and so on"
+      ],
+      "wrong":
+      [
+        "Incorrect processing example one",
+        "Incorrect processing example two and so on"
+      ]
+    },
+    ...
+  ]
+}
+```
+For tags, this works as follows: if there are tags in the text, the examples are added to the prompt. If you have an idea what other examples can be added here (and how to understand when to output them to the prompt!) - write in the project Issues.
+
+
 ### Running
 For convenience, I created a Makefile and it's enough to run `make translate`
 
 ### Cache
-As translation progresses, `*.state` files are created in the trash directory, which store identifiers of already translated lines (just in case the LLM has been translating for a day, and then a cat pressed the computer's power button?). If you want to start translation "from scratch", you should delete these files.
+As translation progresses, `state.json` file created in the `trash` directory, which store identifiers of already translated lines (just in case the LLM has been translating for a day, and then a cat pressed the computer's power button?). If you want to start translation "from scratch", you should delete this file.
 
 ## Graphs
 Currently, only a general graph is built. It's huge and difficult to work with. Connections are completely invisible (hard to track), but since this is SVG, I added the ability to navigate between elements by clicking on icons. Just click on the icons with your mouse and you'll understand.

@@ -3,11 +3,11 @@ import pprint
 import random
 from rich import print as rprint
 from empyrion.options import options
-from empyrion.definition import definition
+from empyrion.datasource.datasource import datasource
 
 class CDialogs:
   def __init__(self):
-    self._dialogues = definition['dialogues']
+    self._dialogues = datasource['ds_dialogues']
     self._loaded_dialogs_keys = set()
     self._flag_values =  ['End', 'Return']
 
@@ -93,17 +93,10 @@ class CDialogs:
         print(f'Missing key: {key}')
 
   def _isRootDialog(self, inspect_key):
-    # for key in self._dialogues.names():
-    #   dialog = self._loadDialog(key)
-    #   if key in dialog['phrases_keys']:
-    #     rprint(f'[green]{key}[/green]')
-    #     return False
     for key in self._dialogues.names():
       for option in self._loadDialogOptions(self._dialogues.get(key)):
         if option == inspect_key:
-          # rprint(f'[red]{key}[/red]')
           return False
-    # rprint(f'[green]{key}[/green]')
     return True
 
   def dialogs(self):
@@ -112,19 +105,6 @@ class CDialogs:
       if self._isRootDialog(key):
         print(f'Appending dialog {key}')
         dialogs.append(self._loadDialog(key))
-
-      # raw = self._dialogues.get(key)
-      # if 'NPCName' in raw:
-      #   dialogs.append(self._loadDialog(key, raw['NPCName']))
-      # else:
-      #   for suffix in ['_Init', '_Init2', '_Init4',  '_InitNoLoot', '_InitT1', '_InitT2', '_InitT4', '_InitT6',
-      #                  '_Start', '_Start2', '_Start3', '_Start4',
-      #                  '_ScenarioIntro_Confirm',
-      #                  '_ThisWorks',
-      #                  '_Input']:
-      #     if key.endswith(suffix):
-      #       dialogs.append(self._loadDialog(key, None))
-
     with open("trash/dialogs.json", "w", encoding="utf-8") as f:
       json.dump(dialogs, f, ensure_ascii=False, indent=4)
     self._checkMissing(dialogs)
