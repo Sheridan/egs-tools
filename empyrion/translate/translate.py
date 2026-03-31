@@ -17,7 +17,7 @@ from empyrion.translate.lexicon.examples import CExamples
 from empyrion.helpers.hasher import CHasher
 from empyrion.datasource.datasource import datasource
 from empyrion.state.state import state
-from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines
+from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines, similarity_sequence
 
 class CTranslate:
   def __init__(self, translation_file):
@@ -67,10 +67,10 @@ class CTranslate:
       Console().print(table)
 
   def translateLog(self, text, previous, current):
-    table = Table(expand=True)
-    table.add_column("Source"  , style="yellow", no_wrap=False, highlight=False)
-    table.add_column("Previous", style="bold"  , no_wrap=False, highlight=False)
-    table.add_column("Current" , style="green" , no_wrap=False, highlight=False)
+    table = Table(title='Texts', caption=f'Similarity between Previous and Current: {similarity_sequence(previous, current):.2f}%', expand=True)
+    table.add_column("Source"    , style="yellow", no_wrap=False, highlight=False)
+    table.add_column("Previous"  , style="bold"  , no_wrap=False, highlight=False)
+    table.add_column("Current"   , style="green" , no_wrap=False, highlight=False)
     table.add_row(escape(text), escape(previous), escape(current))
     Console().print(table)
 

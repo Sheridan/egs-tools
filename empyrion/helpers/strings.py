@@ -1,4 +1,5 @@
 import re
+from difflib import SequenceMatcher
 
 def remove_tags(text):
   text = re.sub(r'\[.*?\]', '', text)
@@ -45,3 +46,6 @@ def is_untranslated_string(text):
   if re.fullmatch(r'\d+/\d+', tmp):
     return True
   return False
+
+def similarity_sequence(text1, text2):
+  return SequenceMatcher(None, text1, text2).ratio() * 100
