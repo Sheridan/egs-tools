@@ -305,8 +305,8 @@ class CCThings:
     rprint(f'Total things in list: [cyan]{len(result)}[/cyan]')
     with open("trash/things.json", "w", encoding="utf-8") as f:
       json.dump(result, f, ensure_ascii=False, indent=4)
-    if options.get("debug", False):
-      random.shuffle(result)
+    # if options.get("debug", False):
+    #   random.shuffle(result)
     return result
 
 things = CCThings()

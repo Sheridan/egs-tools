@@ -2,6 +2,7 @@
   "Various game terms":
   {
     "(adjustable)"        : "(регулируемый)",
+    "(cube half)"         : "(плоловина куба)",
     "(damaged)"           : "(повреждён)",
     "(debug)"             : "(отладка)",
     "(empty)"             : "(пусто)",
@@ -11,8 +12,11 @@
     "(large)"             : "(крупный)",
     "(medium)"            : "(средний)",
     "(occupied)"          : "(занят)",
+    "(pad)"               : "(площадка)",
+    "(plate)"             : "(плита)",
     "(sloped)"            : "(наклонный)",
     "(small)"             : "(малый)",
+    "(steel)"             : "(стальной)",
     "(wood)"              : "(древесина)",
     "combat steel"        : "боевая сталь",
     "empyrion"            : "Empyrion",
@@ -21,16 +25,21 @@
     "improved"            : "улучшенный",
     "legacy"              : "устаревший",
     "LMB"                 : "ЛКМ",
+    "Mouseview"           : "обзор - мышью",
+    "NPC"                 : "НИП",
+    "NPC Spawner"         : "точка возрождения НИП",
+    "outpost"             : "аванпост",
     "reforged eden"       : "Reforged Eden",
     "respawn"             : "воскрешение",
     "RMB"                 : "ПКМ",
+    "sentry"              : "страж",
     "shipment"            : "посылка",
     "spawn point"         : "точка возрождения",
+    "spawner"             : "точка возрождения",
     "toolbar"             : "панель инструментов",
+    "trigger"             : "триггер",
     "vernier"             : "верньерный",
-    "outpost"             : "аванпост",
-    "warp to"             : "варп-прыжок в",
-    "trigger"             : "триггер"
+    "warp to"             : "варп-прыжок в"
   },
   "Vesseld and base":
   {
@@ -61,7 +70,7 @@
     "anaphyllum"        : "анафиллум",
     "anaphyllum maxima" : "анафиллум максима",
     "akuan furze"       : "акуанская ежевика",
-    "dapibus plant"     : "инопланетный перец",
+    "dapibus"           : "инопланетный перец",
     "hydrilla plant"    : "водянка культурная",
     "confetti moss"     : "радужный мох",
     "ovumcalix"         : "яйцечаша",
@@ -108,12 +117,14 @@
   },
   "Food, medicine, drugs and heal":
   {
-    "vegetable juice": "овощной сок",
-    "anti-radiation" : "антирадиационный",
-    "spike lemon"    : "шипастый лимон",
-    "tentacle tree"  : "тентаклевое древо",
-    "wire vial"      : "флакон 'нейропровод'",
-    "brafus fungi"   : "грибы Брафус"
+    "vegetable juice" : "овощной сок",
+    "anti-radiation"  : "антирадиационный",
+    "spike lemon"     : "шипастый лимон",
+    "tentacle tree"   : "тентаклевое древо",
+    "wire vial"       : "флакон 'нейропровод'",
+    "brafus fungi"    : "грибы Брафус",
+    "onion flower"    : "лукоцвет",
+    "glow tube flower": "трубовидный флуорисцирующий цветок"
   },
   "Devices, weapons and equipment":
   {
@@ -195,7 +206,15 @@
     "laser cannon"         : "лазерное орудие",
     "hard light"           : "жёсткое излучение",
     "mounted weapons"      : "стационарное вооружение",
-    "homing weapons"       : "самонаводящееся вооружение"
+    "homing weapons"       : "самонаводящееся вооружение",
+    "phalanx battery"      : "орудийная батарея 'фаланга'",
+    "jump beacon"          : "прыжковый маяк",
+    "tri-beam"             : "трёхлучевой",
+    "foamsteel"            : "пеносталь",
+    "sentry gun"           : "охранная турель",
+    "harvest"              : "сбор",
+    "harvest container"    : "накопительный контейнер",
+    "antenna spike"        : "штыревая антенна"
   },
   "Abbreviation":
   {
@@ -217,7 +236,7 @@
     "Artificer's Guild"          : "Гильдия Искусников",
     "Colonists"                  : "Колонисты",
     "Epsilon"                    : "Эпсилон",
-    "Fortify"                    : "Fortify",
+    "Fortify"                    : "Фортифай",
     "Free Colonists"             : "Свободные колонисты",
     "Ghyst"                      : "Гист",
     "Kriel Broodswarm"           : "Рой выводков Криэля",

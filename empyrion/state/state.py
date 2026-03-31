@@ -1,8 +1,6 @@
 
 import os
 import json
-import hashlib
-import statistics
 
 from rich.console import Console
 from rich.table import Table
@@ -28,12 +26,6 @@ class CState:
         self._data = json.loads(content)
     except (json.JSONDecodeError, IOError):
       self._data = {}
-
-  def _createHash(self, text):
-    encoded_text = text.encode('utf-8')
-    hash_object = hashlib.md5(encoded_text)
-    md5_hash = hash_object.hexdigest()
-    return md5_hash
 
   def save(self):
     rprint(f"[blue]Saving {self._filename}[/blue]...")
@@ -62,14 +54,14 @@ class CState:
   def _add(self, tool, section, name, value):
     self._ensureSectionExists(tool, section)
     if name not in self._data[tool][section]:
-      self._data[tool][section][name] = []
+      self._data[tool][section][name] = set()
     self._data[tool][section][name].append(value)
 
   # dict
   def _set(self, tool, section, name, value):
     self._ensureSectionExists(tool, section)
     if name not in self._data[tool][section]:
-      self._data[tool][section][name] = {}
+      self._data[tool][section][name] = dict()
     self._data[tool][section][name] = value
 
   def _tool(self, tool):
@@ -82,38 +74,58 @@ class CState:
       return self._data[tool][section]
     return None
 
-  def appendTranslateState(self, translate_src, key, src_lng_text):
-    # translate_src: pda, localization, dialogues
-    self._set('translation', translate_src, key, {
-      'hash': self._createHash(src_lng_text)
-    })
+  def appendTranslateState(self, hasher):
+    self._set('translation', hasher.group(), hasher.key(), hasher.hash())
 
-  def isTranslated(self, translate_src, key, src_lng_text):
-    section = self._section('translation', translate_src)
+  def isTranslated(self, hasher):
+    section = self._section('translation', hasher.group())
     if section is None:
       return False
-    if key not in section.keys():
+    if hasher.key() not in section.keys():
       return False
-    return section[key]['hash'] == self._createHash(src_lng_text)
+    return section[hasher.key()] == hasher.hash()
+
+  def isDuplicateKey(self, translation_file, key):
+    section = self._section('duplicates', 'translation')
+    if section is None:
+      return False
+    if translation_file not in section.keys():
+      return False
+    return key in section[translation_file]
+
+  def appendDuplicateKey(self, translation_file, key):
+    self._add('duplicates', 'translation', translation_file, key)
+
+  def clearDuplicates(self):
+    if self._tool('duplicates') is not None:
+      del self._data['duplicates']
+
 
   def appendLLMQueryState(self, llm_model, elapsed_time, in_tokens, out_tokens):
     self._add('llm', llm_model, 'query_elapsed_time', elapsed_time)
     self._add('llm', llm_model, 'query_tokens_in'   , in_tokens)
     self._add('llm', llm_model, 'query_tokens_out'  , out_tokens)
 
-  def showTranslateState(self):
+  def showKnownKeysTranslateState(self):
     translation = self._tool('translation')
+    duplicates = self._section('duplicates', 'translation')
     if translation is None:
       return
-    total = 0
-    table = Table(title="Keys translated", expand=True)
+    total_hashes = 0
+    total_duplicates = 0
+    table = Table(title="Stored translate hashes and duplicates", expand=True)
     table.add_column("Source"    , style="yellow" , no_wrap=False)
-    table.add_column("Translated", style="magenta", no_wrap=False)
+    table.add_column("Hashes"    , style="magenta", no_wrap=False)
+    table.add_column("Duplicates", style="cyan"   , no_wrap=False)
     for section_name in translation:
-      s_len = len(translation[section_name])
-      table.add_row(section_name, str(s_len))
-      total += s_len
-    table.add_row('Total', str(total))
+      hashes_len = len(translation[section_name])
+      duplicates_len = 0
+      if duplicates is not None and section_name in duplicates.keys():
+        duplicates_len = len(duplicates[section_name])
+      table.add_row(section_name, str(hashes_len), str(duplicates_len))
+      total_hashes += hashes_len
+      total_duplicates += duplicates_len
+    table.add_row('Total', str(total_hashes), str(total_duplicates))
     Console().print(table)
 
   def _formatSeconds(self, seconds: float) -> str:

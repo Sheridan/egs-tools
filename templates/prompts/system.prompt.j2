@@ -16,9 +16,9 @@ Core Rules:
 - The text in an untranslatable language should be left as it is.
 
 Examples of tags used in text:
-- html/xml tags: `<tag>...</tag>`
-- bbcode tags: `[tag]...[/tag]`
-- color tags: `[color]...[-]` or `<color=#color>...</color>`
+- html/xml tags: <tag>...</tag>
+- bbcode tags: [tag]...[/tag]
+- color tags: [color]...[-] or <color=#color>...</color>
 
 Examples of placeholders used in text:
 - `{placeholder}`
@@ -29,12 +29,12 @@ Examples of placeholders used in text:
 Examples of correct and wrong use of tags: {{- "\n" }}
 {%-    for example in examples['tags'] -%}
 <example>
-Original string: "{{ example['original'] }}" {{- "\n" }}
+Original string: {{ example['original'] }} {{- "\n" }}
 {%-      for correct in example['correct'] -%}
-Correct: "{{ correct }}" {{- "\n" }}
+Correct: {{ correct }} {{- "\n" }}
 {%-      endfor -%}
 {%-      for wrong in example['wrong'] -%}
-Wrong: "{{ wrong }}" {{- "\n" }}
+Wrong: {{ wrong }} {{- "\n" }}
 {%-      endfor -%}
 </example> {{- "\n" }}
 {%-    endfor -%}

@@ -7,10 +7,7 @@ from empyrion.helpers.strings import text_for_context
 class CTranslateThings(CTranslate):
   def __init__(self):
     super().__init__('localization')
-    self._counts = {
-      'total': 0,
-      'translated': 0
-    }
+    self._already_sheduled = []
 
   def _makeContextData(self, thing):
     context = {'metadata': {}, 'labels': {}}
@@ -29,7 +26,11 @@ class CTranslateThings(CTranslate):
     return context
 
   def _translateThing(self, thing, what):
-    self._translateOne(f"thing {what}", thing['labels']['labels_keys'][what], self._makeContextData(thing))
+    key = thing['labels']['labels_keys'][what]
+    if key in self._already_sheduled:
+      return
+    self._translateOne(f"thing {what}", key, self._makeContextData(thing))
+    self._already_sheduled.append(key)
 
   def _totalPhrases(self, things):
     tp = 0

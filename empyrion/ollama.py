@@ -23,13 +23,14 @@ class COllama:
     }
     self._model = self._models['main']
     self._timeout = options.get("ollama.timeout", 600)
-    self._options = {
-       "temperature": options.get("temperature", 0.4),
-        "top_p": options.get("top_p", 0.9)
-    }
+    self._options = {}
     if not self.isAlive():
       sys.exit("Ollama is not ready")
 
+  def _modelOptions(self):
+    if self._model not in self._options.keys():
+      self._options[self._model] = options.get(f"ollama.models_options.{self._model}", {})
+    return self._options[self._model]
 
   def isAlive(self):
     try:
@@ -66,10 +67,7 @@ class COllama:
           "model": self._model,
           "prompt": prompt,
           "stream": False,
-          "options": {
-            "temperature": self._options['temperature'],
-            "top_p": self._options['top_p']
-          }
+          "options": self._modelOptions()
         },
         timeout=self._timeout
       )

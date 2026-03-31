@@ -1,21 +1,35 @@
 from empyrion.arguments import CArguments
-from empyrion.graph import CGraph
-from empyrion.translate.things import CTranslateThings
-from empyrion.translate.dialogs import CTranslateDialogs
-from empyrion.translate.pda import CTranslatePda
+
+def translateThings():
+  from empyrion.translate.things import CTranslateThings
+  CTranslateThings().translate()
+
+def translateDialogs():
+   from empyrion.translate.dialogs import CTranslateDialogs
+   CTranslateDialogs().translate()
+
+def translatePda():
+   from empyrion.translate.pda import CTranslatePda
+   CTranslatePda().translate()
 
 def main():
   args = CArguments()
   if args.isTranslation():
       print("Translation mode enabled")
-      CTranslateThings().translate()
-      CTranslateDialogs().translate()
-      CTranslatePda().translate()
+      translateThings()
+      translateDialogs()
+      translatePda()
 
   if args.isGraph():
       print("Graph mode enabled")
+      from empyrion.graph import CGraph
       graph = CGraph()
       graph.construct()
+
+  if args.isRemoveTranslationDuplicates():
+     from empyrion.state.state import state
+     state.clearDuplicates()
+     state.save()
 
 if __name__ == "__main__":
   main()

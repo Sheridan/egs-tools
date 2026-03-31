@@ -109,6 +109,6 @@ class CDialogs:
       json.dump(dialogs, f, ensure_ascii=False, indent=4)
     self._checkMissing(dialogs)
     self._showInfo(dialogs)
-    if options.get("debug", False):
-      random.shuffle(dialogs)
+    # if options.get("debug", False):
+    #   random.shuffle(dialogs)
     return dialogs

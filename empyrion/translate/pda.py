@@ -13,9 +13,9 @@ class CTranslatePda(CTranslate):
   def _translatePdaOne(self, what, key, context):
     text = self._translation.get_src_language(key)
     if is_untranslated_string(text):
-      rprint(f'{self._translationProgress()} [green]{what} [bold]{key}[/bold] no need translation[/green]')
+      rprint(f'{self._translationProgress()} [green]{what} [bold]{key}[/bold][/green] [yellow]no need translation[/yellow]')
       self._incrementTranslated()
-      state.appendTranslateState(self._translation_file, key, text)
+      return
     self._translateOne(what, key, context)
 
   def _context(self, title, group):

@@ -4,19 +4,29 @@
   {
     "src_language": "English",
     "dst_language": "Russian",
-    "save_every_nth_query": 10
+    "save_every_nth_query": 3
   },
   "ollama":
   {
+    "url": "http://localhost:11434",
+    "timeout": 3600,
     "models": {
       "wrongs_to_switch_to_smart": 2,
       "main": "translategemma:12b",
       "smart": "gpt-oss"
     },
-    "url": "http://localhost:11434",
-    "timeout": 3600,
-    "temperature": 0.1,
-    "top_p": 0.9
+    "models_options": {
+      "translategemma:12b": {
+        "temperature": 0.1,
+        "top_p": 0.9,
+        "num_ctx": 4096
+      },
+      "gpt-oss": {
+        "temperature": 0.1,
+        "top_p": 0.9,
+        "num_ctx": 8192
+      }
+    }
   },
   "graph":
   {
@@ -25,5 +35,5 @@
     "childs": true,
     "used_in": true
   },
-  "debug": true
+  "debug": false
 }

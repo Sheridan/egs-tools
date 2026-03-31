@@ -84,7 +84,7 @@ class CPda:
       chapters.append(self._loadChapter(chapter))
     with open("trash/pda.json", "w", encoding="utf-8") as f:
       json.dump(chapters, f, ensure_ascii=False, indent=4)
-    if options.get("debug", False):
-      random.shuffle(chapters)
+    # if options.get("debug", False):
+    #   random.shuffle(chapters)
     return chapters
     # rprint(pda_data)

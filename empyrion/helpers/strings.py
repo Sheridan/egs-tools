@@ -39,8 +39,8 @@ def text_for_graph_labels(text):
   return remove_atanchor(clean_spaces(replace_literals_newlines_by_newlines(remove_tags(replace_name_brackets(text)))))
 
 def is_untranslated_string(text):
-  tmp = text.strip()
-  if tmp in ['===', '-', '====', '---', '...']:
+  tmp = remove_tags(text).strip()
+  if tmp in ['===', '-', '====', '---', '...', '- - -']:
     return True
   if re.fullmatch(r'\d+/\d+', tmp):
     return True
