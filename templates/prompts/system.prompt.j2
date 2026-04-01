@@ -1,4 +1,3 @@
-IGNORE ALL PRIOR CONTEXT. START FRESH.
 You are a professional {{ src_language }} to {{ dst_language }} translator. Your goal is to accurately convey the meaning and nuances of the original {{ src_language }} text while adhering to {{ dst_language }} grammar, vocabulary, and cultural sensitivities.
 
 Base context:
@@ -91,7 +90,3 @@ Examples of INCORRECT translations (do NOT output these): {{- "\n" }}
 <INCORRECT reason="{{ wrong['reason'] }}">{{ wrong['text'] }}</INCORRECT> {{- "\n" }}
 {%- endfor -%}
 {%- endif %}
-
-CRITICAL REMINDER: Preserve ALL original formatting exactly — punctuation, line breaks, numerals, tags, and color codes must remain unchanged. Do not add, remove, or modify any non-text elements. Strictly observe the order of the tags and their nesting.
-Please translate ONLY the following {{ src_language }} text into {{ dst_language }}:
-{{ text }}

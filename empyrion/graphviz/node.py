@@ -2,9 +2,9 @@ from empyrion.graphviz.entity import CGraphEntity
 
 class CGraphNode(CGraphEntity):
   def __init__(self, key, data):
-    self.key = key
-    self.data = data
+    self._key = key
+    self._data = data
 
   def get(self):
-    return {  "key":  self.key,
-              "data": self.data  }
+    return {  "key":  self._key,
+              "data": self._data  }

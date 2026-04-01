@@ -3,13 +3,15 @@ import json
 import random
 from empyrion.options import options
 from rich import print as rprint
+import empyrion.helpers.color as clr
 
 class CPda:
   def __init__(self):
-    pass
+    self._filename = options.get("conf_path", 'data') + "/Extras/PDA/PDA.yaml"
 
   def _load(self):
-    with open(options.get("conf_path", 'data') + "/Extras/PDA/PDA.yaml" , 'r') as file:
+    rprint(clr.loadf(self._filename))
+    with open(self._filename, 'r') as file:
       return yaml.safe_load(file)
 
   def _extractValues(self, complex_value):

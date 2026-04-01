@@ -18,6 +18,7 @@ from empyrion.helpers.hasher import CHasher
 from empyrion.datasource.datasource import datasource
 from empyrion.state.state import state
 from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines, similarity_sequence
+import empyrion.helpers.color as clr
 
 class CTranslate:
   def __init__(self, translation_file):
@@ -56,15 +57,6 @@ class CTranslate:
 
   def _translationProgress(self):
     return f"|[yellow]{self._counts['translated'] + 1} of {self._counts['total']}[/yellow]|"
-
-  def _queryLog(self, query, current):
-    if options.get("debug", False):
-      table = Table(show_lines=True, expand=True)
-      table.add_column("---"  , style="magenta", no_wrap=False, highlight=False)
-      table.add_column("Debug", style="yellow" , no_wrap=False, highlight=False)
-      table.add_row("Query"   , escape(query)  )
-      table.add_row("Response", escape(current))
-      Console().print(table)
 
   def translateLog(self, text, previous, current):
     table = Table(title='Texts', caption=f'Similarity between Previous and Current: {similarity_sequence(previous, current):.2f}%', expand=True)
@@ -113,7 +105,7 @@ class CTranslate:
     return replace_newlines_by_literals_newlines(response).strip()
 
   def _addToWrongs(self, result, reason):
-    rprint(f'[bright_red]Wrong translate. {reason}[/bright_red]')
+    rprint(f'[bright_red]Wrong translate.[/bright_red] [red1]{reason}[/red1]')
     self._wrongs_count += 1
     for item in self._wrong_translate:
       if item['text'] == result and item['reason'] == reason:
@@ -155,19 +147,19 @@ class CTranslate:
           self._translation.set_dst_language(key, translated_text)
           state.appendDuplicateKey(self._translation_file, key)
           self._checkNeedToSave()
-          rprint(f'[magenta]Same text found and translate in [bold]{key}[/bold][/magenta]')
+          rprint(f'[dark_violet]Same text found and translate in {clr.key(key)}[/dark_violet]')
 
   def _prepareQueryContext(self, text, object_context):
     return {
       'object_context': object_context,
-      'glossary'      : self._glossary.filterByText(text),
-      'characters'    : self._characters.filterByText(text),
-      'examples'      : self._examples.filterByText(text),
+      'glossary'      : self._glossary.filter(text),
+      'characters'    : self._characters.filter(text, object_context),
+      'examples'      : self._examples.filter(text),
     }
 
   def _translateOne(self, what, key, object_context):
     if not self._translation.exists(key):
-      rprint(f'{self._translationProgress()} [red]{what.title()} [bold]{key} not exists in translation file![/bold][/red]')
+      rprint(f'{self._translationProgress()} [red]{what.title()} {clr.key(key)} not exists in translation file![/red]')
       self._incrementTranslated()
       return
 
@@ -179,17 +171,17 @@ class CTranslate:
     hasher.append(query_context)
 
     if state.isTranslated(hasher):
-      rprint(f'{self._translationProgress()} [green]{what.title()} [bold]{key}[/bold] already translated[/green]')
+      rprint(f'{self._translationProgress()} [green]{what.title()} {clr.key(key)} already translated[/green]')
       self._incrementTranslated()
       return
 
     if state.isDuplicateKey(self._translation_file, key):
-      rprint(f'{self._translationProgress()} [green]{what.title()} [bold]{key}[/bold] value is [magenta]duplicate[/magenta] of another {what}[/green]')
+      rprint(f'{self._translationProgress()} [green]{what.title()} {clr.key(key)} value is [magenta]duplicate[/magenta] of another {what}[/green]')
       state.appendTranslateState(hasher)
       self._incrementTranslated()
       return
 
-    rprint(f'{self._translationProgress()} [green]Translating {what} [bold]{key}[/bold][/green]')
+    rprint(f'{self._translationProgress()} [green]Translating {what} {clr.key(key)}[/green]')
     translated_text = self._translate(query_context, text)
     state.appendTranslateState(hasher)
     self.translateLog(text, self._translation.get_dst_language(key), translated_text)
@@ -200,25 +192,26 @@ class CTranslate:
     self._findAndTranslateSame(key, original_text, translated_text)
     state.showKnownKeysTranslateState()
 
-
   def _translate(self, query_context, text):
     result = None
-
     while result is None:
       try:
         prepared_text = self._prepareText(text)
-        query = self._templating.loadTemplate('prompts', 'system.prompt').render(
+        system_prompt = self._templating.loadTemplate('prompts', 'system.prompt').render(
             context=query_context['object_context'],
             src_language=self._src_language,
             dst_language=self._dst_language,
             glossary=query_context['glossary'],
             characters=query_context['characters'],
             examples=query_context['examples'],
-            text=prepared_text,
             wrongs=self._wrong_translate
           )
-        query_result = self._llm.query(query)
-        self._queryLog(query, query_result)
+        user_prompt = self._templating.loadTemplate('prompts', 'user.prompt').render(
+            src_language=self._src_language,
+            dst_language=self._dst_language,
+            text=prepared_text
+          )
+        query_result = self._llm.query(system_prompt, user_prompt)
         result = self._checkResponse(prepared_text, query_result)
         if self._wrongs_count >= self._wrongs_to_switch_to_smart:
           self._llm.switchToSmartModel()

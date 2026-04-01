@@ -8,6 +8,7 @@ from empyrion.datasource.datasource import datasource
 from empyrion.options import options
 from empyrion.helpers.objectcache import ObjectCache
 from empyrion.helpers.strings import text_for_graph_labels
+import empyrion.helpers.color as clr
 
 class CCThings:
   def __init__(self):
@@ -134,7 +135,7 @@ class CCThings:
             raw['Child']['0']['AmmoType']['value'] == weapon_ammo_key)
 
   def _weaponItemKeyFromWeaponAmmoKey(self, weapon_ammo_key):
-    for key in datasource['itemsConfig'].names():
+    for key in datasource['itemsConfig'].keys():
       if self._thisAmmoForThisWeapon(weapon_ammo_key, key):
         return datasource['itemsConfig'].get(key)['Name']
     return None
@@ -148,7 +149,7 @@ class CCThings:
   def _mineAmmoWeapon(self, weapon_ammo_key):
     weapons = []
     if weapon_ammo_key:
-      for key in datasource['itemsConfig'].names():
+      for key in datasource['itemsConfig'].keys():
         if self._thisAmmoForThisWeapon(weapon_ammo_key, key):
           weapons.append(self._getThing('itemsConfig', key))
     if len(weapons) > 0:
@@ -156,7 +157,7 @@ class CCThings:
     return None
 
   def _mineWeapon(self, thing):
-    rprint(f'Mining weapon data of [magenta]{thing['merged']['Name']}[/magenta]...')
+    # rprint(f'Mining weapon data of [magenta]{thing['merged']['Name']}[/magenta]...')
     weapon_item_key = None
     weapon_ammo_key = None
     weapon_or_ammo = None
@@ -200,12 +201,12 @@ class CCThings:
     return False
 
   def _getUsedIn(self, thing):
-    rprint(f'Mining thing [yellow]{thing['merged']['Name']}[/yellow] used in recipes...')
+    # rprint(f'Mining thing [yellow]{thing['merged']['Name']}[/yellow] used in recipes...')
     result = []
     if thing['things_keys']['thing'] in self._used_in_index:
       result = self._used_in_index[thing['things_keys']['thing']]
     if len(result) > 0:
-      rprint(f"Thing [yellow]{thing['things_keys']['thing']}[/yellow] used in [green]{len(result)}[/green] recipes")
+      # rprint(f"Thing [yellow]{thing['things_keys']['thing']}[/yellow] used in [green]{len(result)}[/green] recipes")
       return result
     return None
 
@@ -216,7 +217,7 @@ class CCThings:
 
   def _buildUsedInIndex(self):
     for block in ['blocksConfig', 'itemsConfig']:
-      for key in datasource[block].names():
+      for key in datasource[block].keys():
         thing = self._getThing(block, key)
         if thing and self._canAddToThings(thing) and not self._isChild(thing) and thing['hasCrafting']:
           thing_recipe = self._thingRecipe(thing)
@@ -267,7 +268,7 @@ class CCThings:
   def _isChild(self, thing):
     if thing['source'] == 'blocksConfig':
       for block in ['blocksConfig']:
-        for key in datasource[block].names():
+        for key in datasource[block].keys():
           raw = datasource[block].get(key)
           if raw and 'ChildBlocks' in raw:
             for child_key in raw['ChildBlocks'].strip('"').split(','):
@@ -294,13 +295,13 @@ class CCThings:
     for block in ['blocksConfig', 'itemsConfig']:
       block_total_records = datasource[block].count()
       block_current_record = 0
-      for key in datasource[block].names():
+      for key in datasource[block].keys():
         block_current_record += 1
-        rprint(f'[ [red]{block}[/red] ] [ [yellow]{block_current_record} of {block_total_records}[/yellow] ] Mining key [green]{key}[/green]...')
+        rprint(f'[ [red]{block}[/red] ] [ [yellow]{block_current_record} of {block_total_records}[/yellow] ] Mining key {clr.key(key)}...')
         thing = self.getThing(key)
         if include_all or (self._canAddToThings(thing) and not self._isChild(thing)):
           # pprint.pprint(thing)
-          rprint(f'Appending [green]{key}[/green] of block [red]{block}[/red] to things render list...')
+          # rprint(f'Appending {clr.key(key)} of block [red]{block}[/red] to things...')
           result.append(thing)
     rprint(f'Total things in list: [cyan]{len(result)}[/cyan]')
     with open("trash/things.json", "w", encoding="utf-8") as f:

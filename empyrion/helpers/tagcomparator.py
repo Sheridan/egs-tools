@@ -8,14 +8,14 @@ from empyrion.options import options
 class TagComparator:
   def __init__(self, original_string: str):
     self._tag_re = re.compile(r'/?[a-z-]+(=#.+)?', re.DOTALL)
-    self.original_tags = self._extract_tags(original_string)
+    self._original_tags = self._extract_tags(original_string)
     # self._tags_list = ['i', 'b', 'color', '-', 'c']
-    
+
 
   def compare(self, other_string: str) -> bool:
     other_tags = self._extract_tags(other_string)
-    if self.original_tags != other_tags:
-      self._show(self.original_tags, other_tags)
+    if self._original_tags != other_tags:
+      self._show(self._original_tags, other_tags)
       return False
     return True
 

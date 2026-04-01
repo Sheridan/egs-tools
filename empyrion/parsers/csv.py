@@ -1,7 +1,7 @@
 import csv
 import re
 from rich import print as rprint
-from empyrion.options import options
+import empyrion.helpers.color as clr
 
 class CCsv:
   def __init__(self, filename, src_language, dst_language):
@@ -15,7 +15,7 @@ class CCsv:
     # self._set_queries = 0
 
   def _load(self):
-    rprint(f"Loading [bright_yellow]{self._filename}[/bright_yellow]")
+    rprint(clr.loadf(self._filename))
     with open(self._filename, 'r', encoding='utf-8') as f:
       reader = csv.reader(f)
       self._headers = next(reader, None)
@@ -34,11 +34,11 @@ class CCsv:
 
   def saveAs(self, filename):
     with open(filename, 'w', newline='') as f:
-      rprint(f"[blue]Saving {self._filename}[/blue]...")
+      rprint(clr.savef(self._filename))
       writer = csv.writer(f)
       writer.writerow(self._headers)
       # print(self._data)
-      for key in self._data.keys():
+      for key in self._data:
         writer.writerow([key] + list(self._data[key]))
     self._changed = False
 
@@ -47,13 +47,13 @@ class CCsv:
   #    self.save()
 
   def keys(self):
-    return list(self._data.keys())
+    return self._data.keys()
 
   def get(self, key, column):
     return self._data[key][column]
 
   def exists(self, key):
-    return key in self.keys()
+    return key in self._data
 
   def get_src_language(self, key):
     return self.get(key, self._src_language_column)

@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.markup import escape
 from rich import print as rprint
+import empyrion.helpers.color as clr
 
 from empyrion.state.history import CHistory
 
@@ -19,6 +20,7 @@ class CState:
     if not os.path.exists(self._filename):
       return
     try:
+      rprint(clr.loadf(self._filename))
       with open(self._filename, 'r', encoding='utf-8') as f:
         content = f.read().strip()
         if not content:
@@ -28,7 +30,7 @@ class CState:
       self._data = {}
 
   def save(self):
-    rprint(f"[blue]Saving {self._filename}[/blue]...")
+    rprint(clr.savef(self._filename))
     dir_name = os.path.dirname(self._filename)
     if dir_name:
       os.makedirs(dir_name, exist_ok=True)
@@ -50,12 +52,13 @@ class CState:
       return False
     return section in self._data[tool]
 
-  # list
+  # set
   def _add(self, tool, section, name, value):
     self._ensureSectionExists(tool, section)
     if name not in self._data[tool][section]:
-      self._data[tool][section][name] = set()
-    self._data[tool][section][name].append(value)
+      self._data[tool][section][name] = list()
+    if value not in self._data[tool][section][name]:
+      self._data[tool][section][name].append(value)
 
   # dict
   def _set(self, tool, section, name, value):

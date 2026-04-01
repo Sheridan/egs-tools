@@ -27,15 +27,15 @@ def clean_node_name(name):
 
 class CTemplating:
   def __init__(self):
-    self.j2env = Environment(loader=FileSystemLoader('templates'))
-    self.j2env.filters['gen_color'] = gen_color
-    self.j2env.filters['get_thing'] = get_thing
-    self.j2env.filters['graphviz_escape'] = graphviz_escape
-    self.j2env.filters['clean_node_name'] = clean_node_name
+    self._j2env = Environment(loader=FileSystemLoader('templates'))
+    self._j2env.filters['gen_color'] = gen_color
+    self._j2env.filters['get_thing'] = get_thing
+    self._j2env.filters['graphviz_escape'] = graphviz_escape
+    self._j2env.filters['clean_node_name'] = clean_node_name
 
   def loadTemplate(self, where, name):
     with open(f"templates/{where}/{name}.j2", 'r', encoding='utf-8') as f:
-      return self.j2env.from_string(f.read().strip())
+      return self._j2env.from_string(f.read().strip())
 
   def cleanString(self, string):
      return '\n'.join(line for line in string.splitlines() if line.strip())

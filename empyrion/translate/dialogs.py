@@ -4,6 +4,7 @@ from empyrion.model.dialogs import CDialogs
 from empyrion.translate.translate import CTranslate
 from empyrion.helpers.strings import text_for_context
 
+
 class CTranslateDialogs(CTranslate):
   def __init__(self):
     super().__init__('dialogues')
@@ -16,46 +17,36 @@ class CTranslateDialogs(CTranslate):
       for ex_variant in [ex, f"{ex}.", ex.lower(), ex.capitalize(), ex.upper(), ex.title()]:
         self._excluded_from_context['str'].append(ex_variant)
 
-  def _makeContextData(self, dialog):
-    context = {'all_dialog_phrases': {}, "npc": {}}
-    if 'npc_name' in dialog:
-      npc_name_key = dialog['npc_name']
-      if self._translation.exists(npc_name_key):
-        context['npc']['name'] = text_for_context(self._translation.get_src_language(npc_name_key))
-      else:
-        context['npc']['name'] = 'Unknown'
-    else:
-      context['npc']['name'] = 'Unknown'
-    phrase_num = 0
-    for key in dialog['phrases_keys']:
-      if self._translation.exists(key):
-        src_text = self._translation.get_src_language(key)
-        if (all(sub not in src_text for sub in self._excluded_from_context['substr']) and
-            src_text not in self._excluded_from_context['str']):
-          context['all_dialog_phrases'][f'phrase_{phrase_num}'] = text_for_context(src_text)
-          phrase_num += 1
-    # pprint.pprint(context)
-    return context
+  def _loadTexts(self, key_name, keys):
+    result = {}
+    i = 0
+    for key in keys:
+      src_text = text_for_context(self._translation.get_src_language(key))
+      if (all(sub not in src_text for sub in self._excluded_from_context['substr']) and
+          src_text not in self._excluded_from_context['str'] and
+          src_text not in result.values()):
+        result[f'{key_name} {i}'] = src_text
+        i += 1
+    return result
 
-  def _translateNPCName(self, dialog, context):
-    if 'npc_name' not in dialog:
-      return
-    npc_name_key = dialog['npc_name']
-    self._translateOne("dialog NPC name", npc_name_key, context)
+  def _makeContextData(self, dialog):
+    return {
+      'phrases': self._loadTexts('phrase', dialog['phrases']),
+      'npc': self._loadTexts('npc name', dialog['npc'])
+    }
 
   def _translateDialog(self, dialog):
     context = self._makeContextData(dialog)
-    self._translateNPCName(dialog, context)
-    for key in dialog['phrases_keys']:
-      self._translateOne("dialog", key, context)
+    for group in ['npc', 'phrases']:
+      for key in dialog[group]:
+        self._translateOne(f"dialog {group}", key, context)
 
   def _totalPhrases(self, dialogs):
-    tp = 0
+    tp = set()
     for dialog in dialogs:
-      tp += len(dialog['phrases_keys'])
-      if 'npc_name' in dialog:
-        tp += 1
-    return tp
+      for group in ['npc', 'phrases']:
+        tp.update(dialog[group])
+    return len(tp)
 
   def translate(self):
     dialogs = CDialogs().dialogs()
@@ -63,4 +54,3 @@ class CTranslateDialogs(CTranslate):
     for dialog in dialogs:
       self._translateDialog(dialog)
     self._translation.save()
-    # pprint.pprint(dialogs)

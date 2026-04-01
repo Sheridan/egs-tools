@@ -15,7 +15,7 @@ class CExamples(CLexicon):
         return True
     return False
 
-  def filterByText(self, text):
+  def filter(self, text):
     filtered = {}
     if self._hasTags(text):
       filtered['tags'] = self._data['tags']

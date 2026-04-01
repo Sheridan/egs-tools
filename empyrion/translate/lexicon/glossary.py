@@ -5,7 +5,7 @@ class CGlossary(CLexicon):
   def __init__(self):
     super().__init__("glossary")
 
-  def filterByText(self, text):
+  def filter(self, text):
     filtered = {}
     cleaned = self._cleanText(text)
     for group in self._data.keys():

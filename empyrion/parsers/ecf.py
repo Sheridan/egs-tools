@@ -1,40 +1,41 @@
 import pprint
 from rich import print as rprint
+import empyrion.helpers.color as clr
 
 class CEcf:
   def __init__(self, filename, name, key_field):
-    self.filename = filename
-    self.name = name
-    self.key_field = key_field
-    self.data = {}
-    self.name_index = []
-    self.content = ""
-    self.content_len = 0
-    self.position = -1
-    self.postprocess_fields = ['Id', 'Name']
+    self._filename = filename
+    self._name = name
+    self._key_field = key_field
+    self._data = {}
+    self._name_index = []
+    self._content = ""
+    self._content_len = 0
+    self._position = -1
+    self._postprocess_fields = ['Id', 'Name']
     self._load()
     self._parse()
 
   def _load(self):
-    rprint(f"Loading [bright_magenta]{self.filename}[/bright_magenta]")
-    with open(self.filename, 'r', encoding='utf-8') as f:
-      self.content = f.read()
-      self.content_len = len(self.content)
+    rprint(clr.loadf(self._filename))
+    with open(self._filename, 'r', encoding='utf-8') as f:
+      self._content = f.read()
+      self._content_len = len(self._content)
 
   def _isEOF(self):
-    return self.position >= self.content_len
+    return self._position >= self._content_len
 
   def _currentChar(self):
     if not self._isEOF():
-      # print(self.content[self.position], end="")
-      return self.content[self.position]
+      # print(self._content[self._position], end="")
+      return self._content[self._position]
     return None
 
   def _futureChar(self):
-    return self.content[self.position + 1]
+    return self._content[self._position + 1]
 
   def _nextChar(self):
-    self.position += 1
+    self._position += 1
     return self._currentChar()
 
   def _isCommentStart(self):
@@ -121,7 +122,7 @@ class CEcf:
     # if 'Id' in section:
     #   print(section['Id'])
     #   print(type(section['Id']))
-    for field_name in self.postprocess_fields:
+    for field_name in self._postprocess_fields:
       if field_name in section and isinstance(section[field_name], dict):
         for key in section[field_name]:
           # print(key)
@@ -194,13 +195,13 @@ class CEcf:
     section[type][name] = content
 
   def _appendSection(self, name, content):
-    if name not in self.data:
-      self.data[name] = {}
+    if name not in self._data:
+      self._data[name] = {}
     # pprint.pprint(content)
-    section_key = content[self.key_field]
-    # if section_key not in self.name_index:
-    #   self.name_index.append(section_key)
-    self.data[name][section_key] = content
+    section_key = content[self._key_field]
+    # if section_key not in self._name_index:
+    #   self._name_index.append(section_key)
+    self._data[name][section_key] = content
 
   def _parse(self):
     while not self._isEOF():
@@ -214,28 +215,26 @@ class CEcf:
         if char == '{':
           section = self._parseSection(char)
           self._appendSection(section[0], section[1])
-    # print(self.data.keys())
-    # pprint.pprint(self.data, indent=2, width=160)
 
-  def names(self):
-    return self.data[self.name].keys()
+  def keys(self):
+    return self._data[self._name].keys()
 
   def count(self):
-    return len(self.data[self.name].keys())
+    return len(self._data[self._name])
 
-  def hasName(self, key):
-    return key in self.data[self.name].keys()
+  def exists(self, key):
+    return key in self._data[self._name]
 
   def search(self, field, value):
     result = []
-    for section_key in self.data[self.name].keys():
-      section = self.data[self.name][section_key]
+    for section_key in self._data[self._name]:
+      section = self._data[self._name][section_key]
       if field in section and section[field] == value:
         result.append(section)
     return result
 
   def get(self, key):
-    if self.hasName(key):
-      # pprint.pprint(self.data[self.name][key])
-      return self.data[self.name][key]
+    if self.exists(key):
+      # pprint.pprint(self._data[self._name][key])
+      return self._data[self._name][key]
     return None
