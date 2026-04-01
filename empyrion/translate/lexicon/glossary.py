@@ -8,8 +8,8 @@ class CGlossary(CLexicon):
   def filter(self, text):
     filtered = {}
     cleaned = self._cleanText(text)
-    for group in self._data.keys():
-      for key in self._data[group].keys():
+    for group in self._data:
+      for key in self._data[group]:
         for key_word in key.lower().split():
           if key_word in cleaned:
             filtered[key] = self._data[group][key]

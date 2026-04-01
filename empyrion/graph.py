@@ -21,7 +21,7 @@ class CGraph:
         self._thingLog(thing)
       self._graphviz.addNode(thing['things_keys']['thing'], thing)
       if thing['hasCrafting']:
-        for ingridient_key in thing['recipe']['Child']['Inputs'].keys():
+        for ingridient_key in thing['recipe']['Child']['Inputs']:
           count = int(thing['recipe']['Child']['Inputs'][ingridient_key])
           if count > 0:
 #            self.copy_icon(src_icon_name, thing['things_keys']['thing'])

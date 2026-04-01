@@ -31,7 +31,7 @@ class ObjectCache:
     return len(self._cache)
 
   def keys(self) -> list[str]:
-    return list(self._cache.keys())
+    return self._cache.keys()
 
   def __len__(self) -> int:
     return len(self._cache)

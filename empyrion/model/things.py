@@ -195,7 +195,7 @@ class CCThings:
     return None
 
   def _thingInRecipe(self, thing, recipe):
-    for recipe_item in recipe.keys():
+    for recipe_item in recipe:
       if recipe_item == thing['things_keys']['thing']:
         return True
     return False
@@ -222,7 +222,7 @@ class CCThings:
         if thing and self._canAddToThings(thing) and not self._isChild(thing) and thing['hasCrafting']:
           thing_recipe = self._thingRecipe(thing)
           if thing_recipe:
-            for recipe_item in thing_recipe.keys():
+            for recipe_item in thing_recipe:
               self._appendInRecipeIndex(recipe_item, thing)
     # pprint.pprint(self._used_in_index)
 

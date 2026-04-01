@@ -84,7 +84,7 @@ class CState:
     section = self._section('translation', hasher.group())
     if section is None:
       return False
-    if hasher.key() not in section.keys():
+    if hasher.key() not in section:
       return False
     return section[hasher.key()] == hasher.hash()
 
@@ -92,7 +92,7 @@ class CState:
     section = self._section('duplicates', 'translation')
     if section is None:
       return False
-    if translation_file not in section.keys():
+    if translation_file not in section:
       return False
     return key in section[translation_file]
 
@@ -123,7 +123,7 @@ class CState:
     for section_name in translation:
       hashes_len = len(translation[section_name])
       duplicates_len = 0
-      if duplicates is not None and section_name in duplicates.keys():
+      if duplicates is not None and section_name in duplicates:
         duplicates_len = len(duplicates[section_name])
       table.add_row(section_name, str(hashes_len), str(duplicates_len))
       total_hashes += hashes_len
@@ -146,7 +146,7 @@ class CState:
     total = { 'elapsed_time': CHistory(),
               'tokens_in':    CHistory(),
               'tokens_out':   CHistory() }
-    for model in llm.keys():
+    for model in llm:
       if 'query_elapsed_time' in llm[model] and 'query_tokens_in' in llm[model] and 'query_tokens_out' in llm[model]:
         if model not in history:
           history[model] = { 'elapsed_time': CHistory(),
@@ -173,7 +173,7 @@ class CState:
     table.add_column("Tokens\nin\nmean"  , style="honeydew2")
     table.add_column("Tokens\nin\nmax"   , style="light_cyan1")
     table.add_column("Tokens\nout"      , style="dark_olive_green1")
-    for model in history.keys():
+    for model in history:
       table.add_row(escape(model),
                     str(history[model]['elapsed_time'].count()),
                     escape(self._formatSeconds(history[model]['elapsed_time'].mean())),
