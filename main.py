@@ -16,9 +16,10 @@ def main():
   args = CArguments()
   if args.isTranslation():
       print("Translation mode enabled")
-      translateThings()
+      # translateThings()
+      # translatePda()
       translateDialogs()
-      translatePda()
+
       # from empyrion.model.dialogs import CDialogs
       # CDialogs().dialogs()
 

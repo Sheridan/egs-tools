@@ -13,8 +13,8 @@ class CTranslatePda(CTranslate):
   def _translatePdaOne(self, what, key, context):
     text = self._translation.get_src_language(key)
     if is_untranslated_string(text):
-      rprint(f'{self._translationProgress()} [green]{what} [bold]{key}[/bold][/green] [yellow]no need translation[/yellow]')
-      self._incrementTranslated()
+      rprint(f'[green]{what} [bold]{key}[/bold][/green] [yellow]no need translation[/yellow]')
+      state.incrementTranslatedStrings(self._translation_file)
       return
     self._translateOne(what, key, context)
 
@@ -67,26 +67,29 @@ class CTranslatePda(CTranslate):
       for task in chapter['tasks']:
         self._translateTask(chapter_context, task)
 
-  def _countStrings(self, pda):
-    count = 0
-    for chapter in pda:
-      if 'title'    in chapter: count += 1
-      if 'group'    in chapter: count += 1
-      if 'messages' in chapter: count += len(chapter['messages'])
-      if 'tasks' in chapter:
-        for task in chapter['tasks']:
-          if 'title'    in task: count += 1
-          if 'messages' in task: count += len(task['messages'])
-          if 'action' in task:
-            for action in task['action']:
-              if 'title'       in action: count += 1
-              if 'description' in action: count += 1
-              if 'messages'    in action: count += len(action['messages'])
-    return count
+  # def _countStrings(self, pda):
+  #   count = 0
+  #   for chapter in pda:
+  #     if 'title'    in chapter: count += 1
+  #     if 'group'    in chapter: count += 1
+  #     if 'messages' in chapter: count += len(chapter['messages'])
+  #     if 'tasks' in chapter:
+  #       for task in chapter['tasks']:
+  #         if 'title'    in task: count += 1
+  #         if 'messages' in task: count += len(task['messages'])
+  #         if 'action' in task:
+  #           for action in task['action']:
+  #             if 'title'       in action: count += 1
+  #             if 'description' in action: count += 1
+  #             if 'messages'    in action: count += len(action['messages'])
+  #   return count
 
   def translate(self):
     pda = CPda().pda()
-    self._setTotalStrings(self._countStrings(pda))
+    self._setTotalObjects(len(pda))
     for chapter in pda:
+      self._translationProgress(f'PDA Chapter', chapter['title'])
       self._translateChapter(chapter)
-    # rprint(pda)
+      self._incrementTranslatedObjects()
+    self._translateTails()
+    self._translation.save()

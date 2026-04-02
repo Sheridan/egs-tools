@@ -49,3 +49,6 @@ def is_untranslated_string(text):
 
 def similarity_sequence(text1, text2):
   return SequenceMatcher(None, text1, text2).ratio() * 100
+
+def rich_colorize_hex(text):
+  return re.sub(r'([a-fA-F0-9]{6})', r'[#\1]\1[/]', text)

@@ -49,4 +49,8 @@ class CDataSource:
       self._data[source] = self._loadSource(source)
     return self._data[source]
 
+  # def objectsCount(self, group):
+  #   totals = {}
+  #   return totals
+
 datasource = CDataSource()

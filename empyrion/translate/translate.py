@@ -17,13 +17,15 @@ from empyrion.translate.lexicon.examples import CExamples
 from empyrion.helpers.hasher import CHasher
 from empyrion.datasource.datasource import datasource
 from empyrion.state.state import state
-from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines, similarity_sequence
+from empyrion.statistics.statistics import statistics
+from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines, similarity_sequence, rich_colorize_hex
 import empyrion.helpers.color as clr
 
 class CTranslate:
   def __init__(self, translation_file):
     self._translation_file = translation_file
     self._translation = datasource[self._translation_file]
+    state.setStringsTotal(self._translation_file, self._translation.count())
     self._llm = COllama()
     self._templating = CTemplating()
     self._sleep_on_error = 8
@@ -47,23 +49,28 @@ class CTranslate:
     if self._save_event_counter >= self._save_event_max:
       self._translation.save()
       state.save()
+      statistics.save()
       self._save_event_counter = 0
 
-  def _setTotalStrings(self, total):
+  def _setTotalObjects(self, total):
     self._counts['total'] = total
 
-  def _incrementTranslated(self):
+  def _incrementTranslatedObjects(self):
     self._counts['translated'] += 1
 
-  def _translationProgress(self):
-    return f"|[yellow]{self._counts['translated'] + 1} of {self._counts['total']}[/yellow]|"
+  def _incrementTranslatedString(self):
+    self._counts['translated'] += 1
+
+
+  def _translationProgress(self, caption, key):
+    return rprint(f"|[yellow]{self._counts['translated'] + 1} of {self._counts['total']}[/yellow]| Processing {clr.objCaption(caption)} with key {clr.key(key)}")
 
   def translateLog(self, text, previous, current):
     table = Table(title='Texts', caption=f'Similarity between Previous and Current: {similarity_sequence(previous, current):.2f}%', expand=True)
-    table.add_column("Source"    , style="yellow", no_wrap=False, highlight=False)
-    table.add_column("Previous"  , style="bold"  , no_wrap=False, highlight=False)
-    table.add_column("Current"   , style="green" , no_wrap=False, highlight=False)
-    table.add_row(escape(text), escape(previous), escape(current))
+    table.add_column(f'Source ({len(text)} symbols)'      , style='yellow', no_wrap=False, highlight=False)
+    table.add_column(f'Previous ({len(previous)} symbols)', style='bold'  , no_wrap=False, highlight=False)
+    table.add_column(f'Current ({len(current)} symbols)'  , style='green' , no_wrap=False, highlight=False)
+    table.add_row(rich_colorize_hex(escape(text)), rich_colorize_hex(escape(previous)), rich_colorize_hex(escape(current)))
     Console().print(table)
 
   def _translateShortLog(self, text, current):
@@ -115,8 +122,10 @@ class CTranslate:
       'reason': reason
     })
 
+  def _textIsPlaceholderOrTag(self, s):
+    return re.fullmatch(r'[\[\{][a-zA-Z0-9]+[\]\}]', s)
+
   def _checkResponse(self, text, result):
-    text_is_plhldr_or_tag = text[0] in ['[', '{'] and text[-1] in [']', '}']
     if (self._countEnglishEetters(result) / 2) > len(result):
       self._addToWrongs(result, f'There is more than half of the untranslated text left. {self._countEnglishEetters(result) / 2} > {len(result)}')
       self._translateShortLog(text, result)
@@ -125,7 +134,7 @@ class CTranslate:
       self._addToWrongs(result, f'Result length ({len(result)}) is much larger than the original ({len(text)})')
       self._translateShortLog(text, result)
       return None
-    if not text_is_plhldr_or_tag and text == result:
+    if not self._textIsPlaceholderOrTag(text) and text == result:
       self._addToWrongs(result, f'Result unchanged')
       self._translateShortLog(text, result)
       return None
@@ -133,7 +142,7 @@ class CTranslate:
       self._addToWrongs(result, 'Result empty')
       self._translateShortLog(text, result)
       return None
-    if not text_is_plhldr_or_tag and not TagComparator(text).compare(result):
+    if not self._textIsPlaceholderOrTag(text) and not TagComparator(text).compare(result):
       self._addToWrongs(result, f'The tags are specified incorrectly')
       self._translateShortLog(text, result)
       return None
@@ -159,8 +168,7 @@ class CTranslate:
 
   def _translateOne(self, what, key, object_context):
     if not self._translation.exists(key):
-      rprint(f'{self._translationProgress()} [red]{what.title()} {clr.key(key)} not exists in translation file![/red]')
-      self._incrementTranslated()
+      rprint(f'[red]{what.title()} {clr.key(key)} not exists in translation file![/red]')
       return
 
     original_text = self._translation.get_src_language(key)
@@ -171,28 +179,33 @@ class CTranslate:
     hasher.append(query_context)
 
     if state.isTranslated(hasher):
-      rprint(f'{self._translationProgress()} [green]{what.title()} {clr.key(key)} already translated[/green]')
-      self._incrementTranslated()
+      rprint(f'[green]{what.title()} {clr.key(key)} already translated[/green]')
       return
 
+    self._translate(key, what, original_text, text, query_context, hasher)
+
+
+  def _translate(self, key, what, original_text, text, query_context, hasher):
     if state.isDuplicateKey(self._translation_file, key):
-      rprint(f'{self._translationProgress()} [green]{what.title()} {clr.key(key)} value is [magenta]duplicate[/magenta] of another {what}[/green]')
+      rprint(f'[green]{what.title()} {clr.key(key)} value is [magenta]duplicate[/magenta] of another {what}.[/green] [grey62]Only story hash[/grey62]')
       state.appendTranslateState(hasher)
-      self._incrementTranslated()
+      state.incrementTranslatedStrings(self._translation_file)
+      state.rmDuplicateKey(self._translation_file, key)
       return
 
-    rprint(f'{self._translationProgress()} [green]Translating {what} {clr.key(key)}[/green]')
-    translated_text = self._translate(query_context, text)
+    rprint(f'[green]Translating {what} {clr.key(key)}[/green]')
+    translated_text = self._query(query_context, text)
     state.appendTranslateState(hasher)
     self.translateLog(text, self._translation.get_dst_language(key), translated_text)
     self._fileLog(key, text, translated_text)
     self._translation.set_dst_language(key, translated_text)
-    self._incrementTranslated()
+    if not state.keyIsTranslated(self._translation_file, key):
+      state.incrementTranslatedStrings(self._translation_file)
     self._checkNeedToSave()
     self._findAndTranslateSame(key, original_text, translated_text)
     state.showKnownKeysTranslateState()
 
-  def _translate(self, query_context, text):
+  def _query(self, query_context, text):
     result = None
     while result is None:
       try:
@@ -222,3 +235,15 @@ class CTranslate:
         rprint(f"[red]LLM query failed: {escape(str(e))}. Retrying in {self._sleep_on_error} seconds...[/red]")
         time.sleep(self._sleep_on_error)
     return self._fixResponse(text, result)
+
+  def _translateTails(self):
+    rprint(f'[yellow1]Translating orphan strings[/yellow1]')
+    for key in self._translation.keys():
+      if not state.keyIsTranslated(self._translation_file, key):
+        original_text = self._translation.get_src_language(key)
+        text = text_for_translate(original_text)
+        query_context = self._prepareQueryContext(text, {})
+        hasher = CHasher(self._translation_file, key)
+        hasher.append(text)
+        hasher.append(query_context)
+        self._translate(key, 'orphan string', original_text, text, query_context, hasher)

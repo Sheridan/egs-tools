@@ -55,6 +55,9 @@ class CCsv:
   def exists(self, key):
     return key in self._data
 
+  def count(self):
+    return len(self._data)
+
   def get_src_language(self, key):
     return self.get(key, self._src_language_column)
 

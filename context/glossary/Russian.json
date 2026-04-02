@@ -214,7 +214,8 @@
     "sentry gun"           : "охранная турель",
     "harvest"              : "сбор",
     "harvest container"    : "накопительный контейнер",
-    "antenna spike"        : "штыревая антенна"
+    "antenna spike"        : "штыревая антенна",
+    "food processor"       : "кухонный комбайн"
   },
   "Abbreviation":
   {
@@ -300,8 +301,7 @@
     "Yan'terel"     : "Ян'терел",
     "YevenJ"        : "ЙевенЖи",
     "card dealer"   : "крупье",
-    "Tanner"        : "Таннер",
-    "Chief"         : "Начальник"
+    "Tanner"        : "Таннер"
   },
   "Organizations, corporations, and companies":
   {
@@ -332,19 +332,20 @@
   },
   "Locations, ships, and locations":
   {
-    "Calypso"        : "Калипсо",
-    "Rhea"           : "Рея",
-    "Kronos"         : "Кронос",
-    "Encaled"        : "Энкалед",
-    "Dion"           : "Дион",
-    "Titan"          : "Титан",
-    "Delta"          : "Дельта",
-    "Eden"           : "Эдем",
-    "Thronelands"    : "Тронные земли",
-    "Badlands"       : "Пустоши",
-    "Prosperity"     : "Процветание",
-    "Wastelands"     : "Пустоши",
-    "Lower Temple"   : "Нижний Храм"
+    "Calypso"          : "Калипсо",
+    "Rhea"             : "Рея",
+    "Kronos"           : "Кронос",
+    "Encaled"          : "Энкалед",
+    "Dion"             : "Дион",
+    "Titan"            : "Титан",
+    "Delta"            : "Дельта",
+    "Eden"             : "Эдем",
+    "Thronelands"      : "Тронные земли",
+    "Badlands"         : "Пустоши",
+    "Prosperity"       : "Процветание",
+    "Wastelands"       : "Пустоши",
+    "Lower Temple"     : "Нижний Храм",
+    "Polaris Oppressor": "Polaris Угнетатель"
   },
   "Classes, ranks, and positions":
   {

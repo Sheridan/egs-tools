@@ -10,6 +10,7 @@ from rich.markup import escape
 from empyrion.options import options
 from empyrion.helpers.timer import Timer
 from empyrion.state.state import state
+from empyrion.statistics.statistics import statistics
 
 class СOllamaError(Exception):
   pass
@@ -91,10 +92,10 @@ class COllama:
       elapsed = self._timer.stop()
       result = response.json()
       answer = result.get("response", "")
-      state.appendLLMQueryState(self._model, elapsed, result['prompt_eval_count'], result['eval_count'])
+      statistics.appendLLMQueryMetrics(self._model, elapsed, result['prompt_eval_count'], result['eval_count'])
       self.printStat(result)
       self._queryLog(system_prompt, user_prompt, answer)
-      state.showLLMState()
+      statistics.showLLM()
       return answer
     except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
       raise СOllamaError(f"Ollama query error: {str(e)}")

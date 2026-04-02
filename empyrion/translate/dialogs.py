@@ -50,7 +50,10 @@ class CTranslateDialogs(CTranslate):
 
   def translate(self):
     dialogs = CDialogs().dialogs()
-    self._setTotalStrings(self._totalPhrases(dialogs))
+    self._setTotalObjects(len(dialogs))
     for dialog in dialogs:
+      self._translationProgress(f'dialog', dialog['keys'][0])
       self._translateDialog(dialog)
+      self._incrementTranslatedObjects()
+    self._translateTails()
     self._translation.save()
