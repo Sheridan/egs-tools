@@ -134,7 +134,7 @@ class CTranslate:
       self._addToWrongs(result, f'Result length ({len(result)}) is much larger than the original ({len(text)})')
       self._translateShortLog(text, result)
       return None
-    if not self._textIsPlaceholderOrTag(text) and text == result:
+    if not self._textIsPlaceholderOrTag(text) and text.strip() == result.strip():
       self._addToWrongs(result, f'Result unchanged')
       self._translateShortLog(text, result)
       return None

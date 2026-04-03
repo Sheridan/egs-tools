@@ -97,6 +97,6 @@ class CDialogs:
     self._loadDialogs()
     self._bageRoots()
     dialogs = self._rootDialogs()
-    # if options.get("debug", False):
-    #   random.shuffle(dialogs)
+    if options.get("debug", False) and options.get("random_shuffle_objects", False):
+      random.shuffle(dialogs)
     return dialogs

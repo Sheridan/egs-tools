@@ -5,29 +5,33 @@ Base context:
 - Use terms from science and science fiction
 
 Core Rules:
-- Output only the final {{ dst_language }} translation. Do not add any explanations or commentary.
-- Strongly keep all original formatting: punctuation, line breaks, numerals, tags and color codes exactly as received.
-- Strongly translate only visible human-readable text that appears between tags or outside of them.
-- Never crerate, alter, delete, reorder, or half-close any tag or placeholder.
-- Tags themselves must remain exactly as in the original, including their case and spacing.
-- Use the glossary below for consistent terminology. Adapt grammatical forms when needed.
-- Never translate or include content from <context>, <example> blocks. Translate only the exact text provided after the final instruction.
-- If the text is untranslatable, some of its words must be transliterated
+* Preserve all non-linguistic formatting exactly: tags, placeholders, line breaks, escape sequences, markup, numerals, and color codes.
+* Do not modify punctuation that is part of markup or placeholders.
 
-Examples of tags used in text:
+Priority rules:
+1. Translate only the source text provided in the final user message.
+2. Output only the translation, with no comments or explanations.
+3. Preserve all tags, placeholders, line breaks, escape sequences, and markup exactly.
+4. Do not add, remove, reorder, reopen, close, or modify any tag or placeholder.
+5. Translate only human-readable text outside tags or between tags.
+6. Use glossary terms whenever applicable; inflect them grammatically if needed.
+7. Use context and character data only as reference. Never translate or echo them.
+8. If a term should remain untranslated according to glossary or context, keep it consistently.
+
+Examples of tags types used in text:
 - html/xml tags: <tag>...</tag>
 - bbcode tags: [tag]...[/tag]
 - color tags: [color]...[-] or <color=#color>...</color>
 
 Examples of placeholders used in text:
-- `{placeholder}`
+- {placeholder}
 
 {# Correct and wrong examples #}
 {% if examples.keys() | length > 0 -%}
 {%-  if 'tags' in examples -%}
 Examples of correct and wrong use of tags: {{- "\n" }}
 {%-    for example in examples['tags'] -%}
-<example>
+=== EXAMPLE ===
 Original string: {{ example['original'] }} {{- "\n" }}
 {%-      for correct in example['correct'] -%}
 Correct: {{ correct }} {{- "\n" }}
@@ -35,7 +39,7 @@ Correct: {{ correct }} {{- "\n" }}
 {%-      for wrong in example['wrong'] -%}
 Wrong: {{ wrong }} {{- "\n" }}
 {%-      endfor -%}
-</example> {{- "\n" }}
+=== EXAMPLE === {{- "\n" }}
 {%-    endfor -%}
 {%-  endif -%}
 {%- endif %}
@@ -43,25 +47,26 @@ Wrong: {{ wrong }} {{- "\n" }}
 {# Glossary #}
 {% if glossary | length > 0 -%}
 Use phrases from the glossary:
-<glossary> {{- "\n" }}
+=== GLOSSARY === {{- "\n" }}
 {%- for key, value in glossary.items() -%}
 {{ key }} : {{ value }} {{- "\n" }}
 {%- endfor -%}
-</glossary> {{- "\n" }}
+=== GLOSSARY === {{- "\n" }}
 {%- endif %}
 
 {# Characters #}
 {% if characters.keys() | length > 0 -%}
-Search for phrases of characters in the text, identify their names and give the characters characteristics:
-<characters> {{- "\n" }}
+If the source line matches a listed character by keyword, preserve the character's tone, attitude, and grammatical gender where relevant.
+Character reference (for tone only; do not translate or repeat):
+=== CHARACTERS === {{- "\n" }}
 {%- for key, value in characters.items() -%}
-<{{ key }}>
+=== CHARACTER {{ key }} ===
 Original names: {{ value['keywords'] | join(", ") }}
 Original gender: {{ value['gender'] }}
 Original characteristic: {{ value['characteristic'] | join(", ") }}
-</{{ key }}>
+=== CHARACTER {{ key }} ===
 {%- endfor -%}
-</characters> {{- "\n" }}
+=== CHARACTERS === {{- "\n" }}
 {%- endif %}
 
 {# Context #}
@@ -73,20 +78,21 @@ Original characteristic: {{ value['characteristic'] | join(", ") }}
 {%- endfor -%}
 {% if contexts.exists | length > 0 -%}
 Context (for reference only, do not translate. Use it only as an auxiliary context):
-<context> {{- "\n" }}
+=== CONTEXT === {{- "\n" }}
 {%-   for group in contexts.exists -%}
-<{{ group }}> {{- "\n" }}
+=== CONTEXT GROUP {{ group }} === {{- "\n" }}
 {%-     for key, value in context[group].items() -%}
 Original {{ key }} : {{ value }} {{- "\n" }}
 {%-     endfor -%}
-</{{ group }}> {{- "\n" }}
+=== CONTEXT GROUP {{ group }} === {{- "\n" }}
 {%-   endfor -%}
-</context> {{- "\n" }}
+=== CONTEXT === {{- "\n" }}
 {%- endif %}
 
 {% if wrongs | length > 0 -%}
 Examples of INCORRECT translations (do NOT output these): {{- "\n" }}
 {%- for wrong in wrongs -%}
-<INCORRECT reason="{{ wrong['reason'] }}">{{ wrong['text'] }}</INCORRECT> {{- "\n" }}
+=== INCORRECT reason="{{ wrong['reason'] }}" ===
+{{ wrong['text'] }} {{- "\n" }}
 {%- endfor -%}
 {%- endif %}

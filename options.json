@@ -49,5 +49,6 @@
     "childs": true,
     "used_in": true
   },
-  "debug": true
+  "debug": true,
+  "random_shuffle_objects": false
 }
