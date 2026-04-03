@@ -12,8 +12,8 @@
     "timeout": 3600,
     "models": {
       "wrongs_to_switch_to_smart": 2,
-      "main": "translategemma:12b",
-      "smart": "gpt-oss"
+      "main": "gpt-oss",
+      "smart": "translategemma:12b"
     },
     "models_options": {
       "translategemma:12b": {

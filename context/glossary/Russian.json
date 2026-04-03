@@ -44,18 +44,18 @@
   },
   "Vesseld and base":
   {
-    "BA"            : "КП",
+    "BA"            : "Б",
     "CV"            : "КС",
-    "SV"            : "МК",
-    "HV"            : "СВП",
-    "(BA)"          : "(КП)",
+    "SV"            : "МС",
+    "HV"            : "РС",
+    "(BA)"          : "(Б)",
     "(CV)"          : "(КС)",
-    "(SV)"          : "(МК)",
-    "(HV)"          : "(СВП)",
-    "(Base)"        : "(КП)",
+    "(SV)"          : "(МС)",
+    "(HV)"          : "(РС)",
+    "(Base)"        : "(Б)",
     "capital vessel": "капитальное судно",
-    "small vessel"  : "малый корабль",
-    "hover vessel"  : "судно на воздушной подушке"
+    "small vessel"  : "малое судно",
+    "hover vessel"  : "репульсорное судно"
   },
   "Plants, stages of growth":
   {
@@ -215,7 +215,8 @@
     "water extractor"      : "водяной насос",
     "xeno"                 : "ксено",
     "xenomatter"           : "ксеновещество",
-    "xenosteel"            : "ксеносталь"
+    "xenosteel"            : "ксеносталь",
+    "forcefield"           : "силовое поле"
   },
   "Abbreviation":
   {
