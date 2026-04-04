@@ -9,8 +9,8 @@ from rich.table import Table
 from rich.markup import escape
 from empyrion.options import options
 from empyrion.helpers.timer import Timer
-from empyrion.state.state import state
 from empyrion.statistics.statistics import statistics
+from empyrion.helpers.filesystem import append_to_file
 
 class СOllamaError(Exception):
   pass
@@ -41,27 +41,46 @@ class COllama:
   def switchToMainModel(self):
     self._model = self._models['main']
 
+  def _log(self, system_prompt, user_prompt, result):
+    delimiter = ':'*80
+    part_delimiter = '-'*20
+    texts = [
+      delimiter,
+      f'{part_delimiter}== model: {self._model} =={part_delimiter}',
+      f'{part_delimiter}== system prompt =={part_delimiter}',
+      system_prompt,
+      f'{part_delimiter}== user prompt =={part_delimiter}',
+      user_prompt,
+      f'{part_delimiter}== thinking =={part_delimiter}',
+      result['thinking'] if 'thinking' in result else '[without thinking]',
+      f'{part_delimiter}== answer =={part_delimiter}',
+      result['response'],
+      delimiter
+    ]
+    append_to_file('ollama', '\n'.join(texts))
+
   def printStat(self, result):
-    table = Table(expand=True)
-    table.add_column("Tokens in", style="green4")
-    table.add_column("Tokens out", style="turquoise4")
-    table.add_row(str(result['prompt_eval_count']), str(result['eval_count']))
-    Console().print(table)
+    if not self._isMetaInResult(result):
+      return
+    rprint(f"Tokens in: [green4]{result['prompt_eval_count']}[/green4]; out: [turquoise4]{result['eval_count']}[/turquoise4]")
     if 'thinking' in result:
       table = Table(expand=True)
       table.add_column("Thinking", style="deep_sky_blue4")
       table.add_row(escape(result['thinking']))
       Console().print(table)
 
-  def _queryLog(self, system_prompt, user_prompt, current):
+  def _queryLog(self, system_prompt, user_prompt, answer):
     if options.get("debug", False):
       table = Table(show_lines=True, expand=True)
       table.add_column("---"  , style="magenta", no_wrap=False, highlight=False)
       table.add_column("Debug", style="yellow" , no_wrap=False, highlight=False)
-      table.add_row("System"  , escape(system_prompt))
-      table.add_row("User"    , escape(user_prompt))
-      table.add_row("Response", escape(current))
+      table.add_row(f"System\n({len(system_prompt)})", escape(system_prompt))
+      table.add_row(f"User\n({len(user_prompt)})"    , escape(user_prompt))
+      table.add_row(f"Response\n({len(answer)})"     , escape(answer))
       Console().print(table)
+
+  def _isMetaInResult(self, result):
+    return 'prompt_eval_count' in result and 'eval_count' in result
 
   def _preparePrompt(self, prompt):
     return re.sub(r'\n{2,}', '\n\n', prompt)
@@ -91,11 +110,13 @@ class COllama:
       response.raise_for_status()
       elapsed = self._timer.stop()
       result = response.json()
+      # rprint(result)
       answer = result.get("response", "")
-      statistics.appendLLMQueryMetrics(self._model, elapsed, result['prompt_eval_count'], result['eval_count'])
+      if self._isMetaInResult(result):
+        statistics.appendLLMQueryMetrics(self._model, elapsed, result['prompt_eval_count'], result['eval_count'])
       self.printStat(result)
       self._queryLog(system_prompt, user_prompt, answer)
-      statistics.showLLM()
+      self._log(system_prompt, user_prompt, result)
       return answer
     except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
       raise СOllamaError(f"Ollama query error: {str(e)}")

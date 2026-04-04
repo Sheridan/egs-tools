@@ -10,7 +10,8 @@ def clean_spaces(text):
   return ' '.join(text.split(' '))
 
 def replace_name_brackets(text):
-  return re.sub(r'\[([\s/a-zA-Z0-9-][^\]]*[^a-zA-Z0-9-])\]', r'|\1|', text)
+  return text
+  # return re.sub(r'\[([\s/a-zA-Z0-9-][^\]]*[^a-zA-Z0-9-])\]', r'|\1|', text)
 
 def remove_atanchor(text):
   return re.sub(r'@[a-z]+\d+', '', text, flags=re.IGNORECASE)
@@ -50,5 +51,17 @@ def is_untranslated_string(text):
 def similarity_sequence(text1, text2):
   return SequenceMatcher(None, text1, text2).ratio() * 100
 
-def rich_colorize_hex(text):
-  return re.sub(r'([a-fA-F0-9]{6})', r'[#\1]\1[/]', text)
+def rich_colorize_hex(s):
+  return re.sub(r'([a-fA-F0-9]{6})', r'[#\1]\1[/]', s)
+
+def is_tag(s):
+  # print(s)
+  tag = s[1:-1]
+  tagname = tag.split('=')[0]
+  if len(tagname):
+    if tagname[0] == '/': tagname = tagname[1:]
+    if tagname in ['a', 'u', 'b', '-', 'c', 'sup', 'sub', 'color', 'url']:
+      return True
+    if re.fullmatch(r'(#?[a-fA-F0-9]{6})', tagname):
+      return True
+  return False

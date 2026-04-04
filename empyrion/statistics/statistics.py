@@ -15,11 +15,15 @@ class CStatistics(CJsonStorage):
     self._add('llm', llm_model, 'query_tokens_out'  , out_tokens)
 
   def _formatSeconds(self, seconds: float) -> str:
-    total_seconds = int(round(seconds))
-    hours = total_seconds // 3600
-    minutes = (total_seconds % 3600) // 60
-    secs = total_seconds % 60
-    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    total_seconds_int = int(seconds)
+    milliseconds = int(round((seconds - total_seconds_int) * 1000))
+    if milliseconds == 1000:
+        milliseconds = 0
+        total_seconds_int += 1
+    hours = total_seconds_int // 3600
+    minutes = (total_seconds_int % 3600) // 60
+    secs = total_seconds_int % 60
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}.{milliseconds:02d}"
 
   def showLLM(self):
     llm = self._tool('llm')
@@ -55,7 +59,8 @@ class CStatistics(CJsonStorage):
     table.add_column("Tokens\nin\nmin"   , style="dark_sea_green1")
     table.add_column("Tokens\nin\nmean"  , style="honeydew2")
     table.add_column("Tokens\nin\nmax"   , style="light_cyan1")
-    table.add_column("Tokens\nout"      , style="dark_olive_green1")
+    table.add_column("Tokens\nout"       , style="dark_olive_green1")
+    table.add_column("Average\ntokens/s" , style="dark_olive_green1")
     for model in history:
       table.add_row(escape(model),
                     str(history[model]['elapsed_time'].count()),
@@ -68,7 +73,8 @@ class CStatistics(CJsonStorage):
                     str(int(history[model]['tokens_in'   ].min())),
                     str(int(history[model]['tokens_in'   ].mean())),
                     str(int(history[model]['tokens_in'   ].max())),
-                    str(int(history[model]['tokens_out'  ].sum())))
+                    str(int(history[model]['tokens_out'  ].sum())),
+                    str(f'{((history[model]['tokens_in'].sum() + history[model]['tokens_out'].sum()) / history[model]['elapsed_time'].sum()):.2f}'))
     table.add_row('Total',
                     str(total['elapsed_time'].count()),
                     escape(self._formatSeconds(total['elapsed_time'].mean())),
@@ -80,7 +86,8 @@ class CStatistics(CJsonStorage):
                     str(int(total['tokens_in'].min())),
                     str(int(total['tokens_in'].mean())),
                     str(int(total['tokens_in'].max())),
-                    str(int(total['tokens_out'].sum())))
+                    str(int(total['tokens_out'].sum())),
+                    str(f'{((total['tokens_in'].sum() + total['tokens_out'].sum()) / total['elapsed_time'].sum()):.2f}'))
     Console().print(table)
 
 statistics = CStatistics()

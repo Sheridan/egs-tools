@@ -4,16 +4,18 @@ from rich.console import Console
 from rich.table import Table
 from rich.pretty import Pretty
 from empyrion.options import options
+from empyrion.helpers.strings import is_tag
 
 class TagComparator:
   def __init__(self, original_string: str):
-    self._tag_re = re.compile(r'/?[a-z-]+(=#.+)?', re.DOTALL)
+    # self._tag_re = re.compile(r'/?[a-z-]+(=#[a-fA-F0-9]+)?', re.DOTALL)
     self._original_tags = self._extract_tags(original_string)
     # self._tags_list = ['i', 'b', 'color', '-', 'c']
 
 
   def compare(self, other_string: str) -> bool:
     other_tags = self._extract_tags(other_string)
+    # self._show(self._original_tags, other_tags)
     if self._original_tags != other_tags:
       self._show(self._original_tags, other_tags)
       return False
@@ -29,8 +31,8 @@ class TagComparator:
         table.add_row(str(len(original)), str(len(current)))
         Console().print(table)
 
-  def _isTag(self, text):
-    return self._tag_re.search(text)
+  # def _isTag(self, text):
+  #   return self._tag_re.search(text)
 
   def _extract_tags(self, s: str):
     tags = []
@@ -41,7 +43,7 @@ class TagComparator:
         j = s.find('>', i)
         if j != -1:
           tag = s[i:j+1]
-          if self._isTag(tag):
+          if is_tag(tag):
             tags.append(tag)
           i = j + 1
         else:
@@ -50,11 +52,12 @@ class TagComparator:
         j = s.find(']', i)
         if j != -1:
           tag = s[i:j+1]
-          if self._isTag(tag):
+          if is_tag(tag):
             tags.append(tag)
           i = j + 1
         else:
           i += 1
       else:
         i += 1
+    # rprint(tags)
     return tags

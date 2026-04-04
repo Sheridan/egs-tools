@@ -58,8 +58,8 @@ class CJsonStorage:
   # dict
   def _set(self, tool, section, name, value):
     self._ensureSectionExists(tool, section)
-    # if name not in self._data[tool][section]:
-    #   self._data[tool][section][name] = dict()
+    #if name not in self._data[tool][section]:
+    #  self._data[tool][section][name] = value
     self._data[tool][section][name] = value
 
   def _last(self, tool, section, name, default):

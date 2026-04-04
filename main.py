@@ -15,24 +15,24 @@ def translatePda():
 def main():
   args = CArguments()
   if args.isTranslation():
-      print("Translation mode enabled")
-      translateThings()
-      translatePda()
-      translateDialogs()
+   print("Translation mode enabled")
+   translateThings()
+   translateDialogs()
+   translatePda()
 
       # from empyrion.model.dialogs import CDialogs
       # CDialogs().dialogs()
 
   if args.isGraph():
-      print("Graph mode enabled")
-      from empyrion.graph import CGraph
-      graph = CGraph()
-      graph.construct()
+   print("Graph mode enabled")
+   from empyrion.graph import CGraph
+   graph = CGraph()
+   graph.construct()
 
   if args.isRemoveTranslationDuplicates():
-     from empyrion.state.state import state
-     state.clearDuplicates()
-     state.save()
+   from empyrion.state.state import state
+   state.clearDuplicates()
+   state.save()
 
 if __name__ == "__main__":
   main()

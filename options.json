@@ -4,40 +4,88 @@
   {
     "src_language": "English",
     "dst_language": "Russian",
-    "save_every_nth_query": 3
+    "save_every_nth_query": 8
   },
   "ollama":
   {
     "url": "http://localhost:11434",
-    "timeout": 3600,
-    "models": {
+    "timeout": 600,
+    "models":
+    {
       "wrongs_to_switch_to_smart": 2,
-      "main": "gpt-oss",
-      "smart": "translategemma:12b"
+      "main": "rinex20/translategemma3:12b",
+      "smart": "gemma4:e4b-it-q8_0"
     },
-    "models_options": {
-      "translategemma:12b": {
+    "models_options":
+    {
+      "translategemma:12b":
+      {
         "accept_system_prompt": true,
-        "api": {
+        "api":
+        {
           "temperature": 0.1,
           "top_p": 0.9,
           "num_ctx": 8192
         }
       },
-      "gpt-oss": {
+      "rinex20/translategemma3:12b":
+      {
         "accept_system_prompt": true,
-        "api": {
+        "api":
+        {
           "temperature": 0.1,
           "top_p": 0.9,
-          "num_ctx": 8192
+          "num_ctx": 16384
         }
       },
-      "qwen3.5:9b": {
+      "translategemma:12b-it-q8_0":
+      {
         "accept_system_prompt": true,
-        "api": {
+        "api":
+        {
           "temperature": 0.1,
           "top_p": 0.9,
           "num_ctx": 4096
+        }
+      },
+      "gpt-oss:20b":
+      {
+        "accept_system_prompt": true,
+        "api":
+        {
+          "temperature": 0.1,
+          "top_p": 0.9,
+          "num_ctx": 8192
+        }
+      },
+      "qwen3.5:9b":
+      {
+        "accept_system_prompt": true,
+        "api":
+        {
+          "temperature": 0.1,
+          "top_p": 0.9,
+          "num_ctx": 4096
+        }
+      },
+      "qwen3.5:27b":
+      {
+        "accept_system_prompt": true,
+        "api":
+        {
+          "temperature": 0.1,
+          "top_p": 0.9,
+          "num_ctx": 16384
+        }
+      },
+      "gemma4:e4b-it-q8_0":
+      {
+        "accept_system_prompt": true,
+        "api":
+        {
+          "temperature": 0.1,
+          "top_p": 0.9,
+          "num_ctx": 16384
         }
       }
     }
@@ -49,6 +97,6 @@
     "childs": true,
     "used_in": true
   },
-  "debug": true,
+  "debug": false,
   "random_shuffle_objects": false
 }

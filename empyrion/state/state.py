@@ -17,8 +17,8 @@ class CState(CJsonStorage):
   def appendTranslateState(self, hasher):
     self._set('translation', hasher.group(), hasher.key(), hasher.hash())
 
-  def keyIsTranslated(self, translation_file, key):
-    section = self._section('translation', translation_file)
+  def keyIsTranslated(self, source, key):
+    section = self._section('translation', source)
     if section is None:
       return False
     return key in section
@@ -31,25 +31,42 @@ class CState(CJsonStorage):
       return False
     return section[hasher.key()] == hasher.hash()
 
-  def isDuplicateKey(self, translation_file, key):
+  def isDuplicateKey(self, source, key):
     section = self._section('duplicates', 'translation')
     if section is None:
       return False
-    if translation_file not in section:
+    if source not in section:
       return False
-    return key in section[translation_file]
+    return key in section[source]
 
-  def appendDuplicateKey(self, translation_file, key):
-    self._add('duplicates', 'translation', translation_file, key)
+  def appendDuplicateKey(self, source, key):
+    self._add('duplicates', 'translation', source, key)
 
-  def rmDuplicateKey(self, translation_file, key):
+  def rmDuplicateKey(self, source, key):
     section = self._section('duplicates', 'translation')
-    if section is not None and translation_file in section:
-      section[translation_file].remove(key)
+    if section is not None and source in section:
+      section[source].remove(key)
 
   def clearDuplicates(self):
     if self._tool('duplicates') is not None:
       del self._data['duplicates']
+
+  def appendOwnedKey(self, source, key):
+    self._add('owned', 'translation', source, key)
+
+  def isOwnedKey(self, source, key):
+    section = self._section('owned', 'translation')
+    if section is None:
+      return False
+    if source not in section:
+      return False
+    return key in section[source]
+
+  def getStringsCounts(self, source):
+    return  {
+              'total': self._last('totals', 'strings', source, 0),
+              'processed': self._last('processing', 'strings', source, 0),
+            }
 
   def showKnownKeysTranslateState(self):
     translation = self._tool('translation')

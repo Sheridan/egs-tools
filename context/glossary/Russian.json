@@ -2,6 +2,7 @@
   "Various game terms":
   {
     "(adjustable)"        : "(регулируемый)",
+    "(bounty)"            : "(премия)",
     "(cube half)"         : "(плоловина куба)",
     "(damaged)"           : "(повреждён)",
     "(debug)"             : "(отладка)",
@@ -16,14 +17,17 @@
     "(plate)"             : "(плита)",
     "(sloped)"            : "(наклонный)",
     "(small)"             : "(малый)",
+    "(steam)"             : "(пар)",
     "(steel)"             : "(стальной)",
     "(wood)"              : "(древесина)",
+    "bounty"              : "премия",
     "combat steel"        : "боевая сталь",
     "data cache"          : "кэш данных",
     "empyrion"            : "Empyrion",
     "hardened"            : "закаленный",
     "holographic diasplay": "голографический дисплей",
     "improved"            : "улучшенный",
+    "junk"                : "мусор",
     "legacy"              : "устаревший",
     "LMB"                 : "ЛКМ",
     "Mouseview"           : "обзор - мышью",
@@ -40,22 +44,26 @@
     "toolbar"             : "панель инструментов",
     "trigger"             : "триггер",
     "vernier"             : "верньерный",
-    "warp to"             : "варп-прыжок в"
+    "warp to"             : "варп-прыжок в",
+    "SLEEP & RESPAWN"     : "сон и воскрешение"
   },
   "Vesseld and base":
   {
     "BA"            : "Б",
     "CV"            : "КС",
     "SV"            : "МС",
-    "HV"            : "РС",
+    "HV"            : "РК",
+    "BA/CV"         : "Б/КС",
+    "HV/SV"         : "РК/МС",
+    "SV/HV"         : "МС/РК",
     "(BA)"          : "(Б)",
     "(CV)"          : "(КС)",
     "(SV)"          : "(МС)",
-    "(HV)"          : "(РС)",
+    "(HV)"          : "(РК)",
     "(Base)"        : "(Б)",
     "capital vessel": "капитальное судно",
     "small vessel"  : "малое судно",
-    "hover vessel"  : "репульсорное судно"
+    "hover vessel"  : "репульсорный катер"
   },
   "Plants, stages of growth":
   {
@@ -84,7 +92,13 @@
     "potted"            : "комнатное",
     "spike lemon"       : "шипастый лимон",
     "tentacle tree"     : "тентаклевое древо",
-    "wheat"             : "пшеница"
+    "wheat"             : "пшеница",
+    "trumpet greens"    : "трубчатая зелень",
+    "phoenix fern"      : "папоротник феникса"
+  },
+  "Fauna":
+  {
+    "lancetfly": "ланцетовидная муха"
   },
   "Resources and materials":
   {
@@ -123,17 +137,23 @@
   "Food, medicine, drugs and heal":
   {
     "anti-radiation"  : "антирадиационный",
-    "vegetable juice"   : "овощной сок",
-    "wire vial"       : "флакон 'нейропровод'"
+    "vegetable juice" : "овощной сок",
+    "wire vial"       : "флакон 'нейропровод'",
+    "energy bar"      : "энергетический батончик"
   },
   "Devices, weapons and equipment":
   {
+    "SMG"                  : "пистолет-пулемёт",
+    "federation spacesuit" : "скафандр федерации",
     "aerodrone"            : "аэродрон",
     "airbrake"             : "воздушный тормоз",
     "alien hull block"     : "ксеноблок",
     "alien"                : "инопланетный",
     "ammunition not needed": "боеприпасы не требуются",
     "antenna spike"        : "штыревая антенна",
+    "auto miner core"      : "ядро автоматического добытчика",
+    "auto mining device"   : "автоматический добытчик",
+    "auto miner"           : "автоматический добытчик",
     "blaster cannon"       : "бластерное орудие",
     "boarding ramp"        : "погрузочный пандус",
     "booster"              : "усилитель",
@@ -156,11 +176,15 @@
     "drill charge"         : "батарея для бура",
     "drill turret"         : "буровая установка",
     "drill"                : "бур",
+    "drone bay"            : "отсек для дронов",
+    "effect block"         : "блок эффекта",
+    "effect projector"     : "проектор эффектов",
     "emergency beacon"     : "аварийный маяк",
     "EMP"                  : "ЭМИ",
     "flamethrower"         : "огнемёт",
     "foamsteel"            : "пеносталь",
     "food processor"       : "кухонный комбайн",
+    "forcefield"           : "силовое поле",
     "fortify software"     : "утилиты fortify",
     "gatling"              : "роторная",
     "generator"            : "генератор",
@@ -180,10 +204,12 @@
     "landing gears"        : "шасси",
     "laser cannon"         : "лазерное орудие",
     "laser charge"         : "лазерный заряд",
-    "Micro Jump Drive"     : "микропрыжковый двигатель",
+    "laser drone bay"      : "отсек для лазерных дронов",
+    "micro jump drive"     : "микропрыжковый двигатель",
+    "missile launcher"     : "ракетная установка",
     "mounted weapons"      : "стационарное вооружение",
     "neural interface"     : "нейроинтерфейс",
-    "NPC Core"             : "Ядро NPC",
+    "npc core"             : "ядро npc",
     "offline protection"   : "автономная защита",
     "optronic"             : "оптронный",
     "oxygen extractor"     : "экстрактор кислорода",
@@ -205,6 +231,7 @@
     "solar capacitor"      : "солнечный накопитель",
     "tank"                 : "резервуар",
     "thruster"             : "двигатель",
+    "tool turrets"         : "инструментальные турели",
     "torpedo launcher"     : "торпедный аппарат",
     "tri-beam"             : "трёхлучевой",
     "tripwire"             : "растяжка",
@@ -216,7 +243,7 @@
     "xeno"                 : "ксено",
     "xenomatter"           : "ксеновещество",
     "xenosteel"            : "ксеносталь",
-    "forcefield"           : "силовое поле"
+    "control station"      : "станция контроля"
   },
   "Abbreviation":
   {
@@ -230,7 +257,16 @@
     "Automated Transitional Living Assembly System"                                   : "Автоматизированная Технология Логистики Адаптивного Строительства",
     "<b>A</b>utomated <b>T</b>ransitional <b>L</b>iving <b>A</b>ssembly <b>S</b>ystem": "<b>А</b>втоматизированная <b>Т</b>ехнология <b>Л</b>огистики <b>А</b>даптивного <b>С</b>троительства",
     "U.I.M."                                                                          : "О.Н.Ш.",
-    "Union of Independent Miners"                                                     : "Объединение Независимых Шахтёров"
+    "Union of Independent Miners"                                                     : "Объединение Независимых Шахтёров",
+    "UCH"                                                                             : "ОСЧ",
+    "United Council of Humanity"                                                      : "Объединенный Совет Человечества",
+    "UCHN"                                                                            : "ФОСЧ",
+    "United Council of Humanity Navy"                                                 : "Флот Объединенного Совет Человечества",
+    "ASC"                                                                             : "БКК",
+    "Abyss Space Corps"                                                               : "Бездонный Космический Корпус",
+    "GLaD"                                                                            : "ГОиО",
+    "UCT"                                                                             : "ГОиО",
+    "Galactic Liberation and Defence"                                                 : "Галактическое Освобождение и Оборона"
   },
   "Races, factions, and organizations":
   {
@@ -257,13 +293,11 @@
     "The Legacy"                 : "Наследие",
     "The Pirate Armada"          : "Пиратская армада",
     "The Trade Federation"       : "Торговая федерация",
-    "UCH"                        : "UCH",
-    "UCH Researcher"             : "исследователь UCH",
-    "UCHN"                       : "UCHN",
-    "Union of Independent Miners": "Профсоюз независимых горняков",
+    "UCH Researcher"             : "исследователь ОСЧ",
     "Xenu"                       : "Ксену",
     "Zirax"                      : "Зиракс",
-    "MacGyver"                   : "МакГайвер"
+    "MacGyver"                   : "МакГайвер",
+    "pax-purgatory"              : "мир-чистилище"
   },
   "Names of characters and NPCs":
   {
@@ -308,15 +342,15 @@
   },
   "Organizations, corporations, and companies":
   {
+    "Ltd"                          : "ООО",
     "Polaris Megacorporation"      : "Мегакорпорация Polaris",
     "Polaris Megacorp"             : "Мегакорп Polaris",
     "Polaris Mining Company"       : "Горнодобывающая компания Polaris",
     "Polaris Planetside Production": "Планетарное производство Polaris",
-    "Chromium-Sierra Sciences"     : "Chromium-Sierra Sciences",
-    "Non-Linear Productions"       : "Non-Linear Productions",
+    "Chromium-Sierra Sciences"     : "НИИ Chromium-Sierra",
+    "Non-Linear Productions"       : "Нелинейные производства",
     "Plumas Ice Mining"            : "Ледобуры Plumas",
-    "UCH Research Vessel"          : "Научно-исследовательское судно UCH",
-    "UCHN Odyssey"                 : "UCHN Odyssey",
+    "UCH Research Vessel"          : "Научно-исследовательское судно ОСЧ",
     "Union of Independent Miners"  : "Профсоюз независимых горняков",
     "Artificer's Guild"            : "Гильдия Искусников",
     "Tal'on Guilds"                : "Гильдии Тал'он",
@@ -326,12 +360,16 @@
     "XCorp"                        : "XCorp",
     "Colonist News Network"        : "Colonist News Network",
     "Federal Customs"              : "Федеральная таможня",
-    "ASC"                          : "ASC",
-    "GLaD"                         : "GLaD",
-    "UCT"                          : "UCT",
     "Black Sails"                  : "Чёрные паруса",
     "Red Rogue"                    : "Красный Бродяга",
-    "Oppressor"                    : "Угнетатель"
+    "Oppressor"                    : "Угнетатель",
+    "incorporated"                 : "объединённый",
+    "entertainment"                : "развлечения",
+    "technology"                   : "технология",
+    "Thermal Interactions Ltd"     : "ООО 'Тепловые взаимодействия'",
+    "Pent-MAX-It!"                 : "Pent-MAX-It!",
+    "Chemmix Industrial"           : "ХемиПром",
+    "VitaLife Pharmaceuticals"     : "ФК 'ВитаЛайф'"
   },
   "Locations, ships, and locations":
   {
