@@ -35,6 +35,8 @@ class CTagsProcessor:
     right_tags = self._extractTags(right)
     if left_tags == right_tags:
       return True
+    if set(left_tags) == set(right_tags):
+      return True
     if abs(len(left_tags) - len(right_tags)) <= 2 and len(left_tags) > 2:
       if self._isEven(len(left_tags)) == self._isEven(len(right_tags)):
         if self._checkOpenClosedTags(left_tags) == self._checkOpenClosedTags(right_tags):

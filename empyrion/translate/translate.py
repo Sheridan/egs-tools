@@ -175,7 +175,7 @@ class CTranslate:
     return False
 
   def _extractPlaceholders(self, text):
-    result = []
+    result = set()
     start = None
     depth = 0
 
@@ -188,9 +188,9 @@ class CTranslate:
         if depth > 0:
           depth -= 1
           if depth == 0 and start is not None:
-            result.append(text[start:i+1])
+            result.add(text[start:i+1])
             start = None
-    return result
+    return list(result)
 
   def _prepareQueryContext(self, text, object_context):
     return {
