@@ -80,7 +80,8 @@ class CDialogs:
         childs.add(child)
         c_root = self._flatDialog(self._dialogs[child], childs)
         for pkey in ['phrases', 'npc', 'keys']:
-          dialog[pkey] += c_root[pkey]
+          if c_root[pkey] not in dialog[pkey]:
+            dialog[pkey] += c_root[pkey]
     return dialog
 
   def _rootDialogs(self):

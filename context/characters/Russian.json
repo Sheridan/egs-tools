@@ -17,6 +17,44 @@
         "likes to joke"
       ]
     },
+    "na'tuk":
+    {
+      "keywords": ["na'tuk", "tal'on chief"],
+      "gender": "male",
+      "characteristic":
+      [
+        "the old man",
+        "the chief of the tribe Tal'on",
+        "careful",
+        "talks politely, but he can flare up",
+        "talks a little pretentiously",
+        "worried about the people of his tribe"
+      ]
+    },
+    "ku'reil":
+    {
+      "keywords": ["ku'reil", "huntmaster ku'reil"],
+      "gender": "male",
+      "characteristic":
+      [
+        "the second most important person in the tribe",
+        "easily loses his temper",
+        "talks a little pretentiously",
+        "worried about the hunters of his tribe"
+      ]
+    },
+    "ki'eve":
+    {
+      "keywords": ["ki'eve", "traitor ki'eve", "hunter ki'eve"],
+      "gender": "male",
+      "characteristic":
+      [
+        "young",
+        "upset about his father's death",
+        "he speaks sharply",
+        "does not accept arguments"
+      ]
+    },
     "terminal":
     {
       "keywords": ["terminal", "console"],
@@ -25,7 +63,8 @@
       [
         "there are hints of the existence of intelligence",
         "dry communication",
-        "does not show emotions"
+        "does not show emotions",
+        "doesn 't reason"
       ]
     },
     "administrator":

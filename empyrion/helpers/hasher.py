@@ -1,8 +1,9 @@
 import hashlib
-
+from empyrion.options import options
+from empyrion.helpers.filesystem import append_to_file
 class CHasher:
-  def __init__(self, group, key):
-    self._key = key
+  def __init__(self, group, key, parent):
+    self._key = f'{parent}_{key}'
     self._group = group
     self._data = b''
     self.append(self._group + self._key)
@@ -25,6 +26,9 @@ class CHasher:
   def hash(self):
     if self._hash is None:
       self._hash = hashlib.sha256(self._data).hexdigest()
+      if options.get("debug_hasher", False):
+        append_to_file('hasher', f'{self._key}: [{self._hash}] {self._data}')
+
     return self._hash
 
   def key(self):

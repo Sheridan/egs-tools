@@ -47,13 +47,13 @@ class COllama:
     texts = [
       delimiter,
       f'{part_delimiter}== model: {self._model} =={part_delimiter}',
-      f'{part_delimiter}== system prompt =={part_delimiter}',
+      f'{part_delimiter}== system prompt ({len(system_prompt)}) =={part_delimiter}',
       system_prompt,
-      f'{part_delimiter}== user prompt =={part_delimiter}',
+      f'{part_delimiter}== user prompt ({len(user_prompt)}) =={part_delimiter}',
       user_prompt,
-      f'{part_delimiter}== thinking =={part_delimiter}',
+      f'{part_delimiter}== thinking ({len(result['thinking']) if 'thinking' in result else '-'}) =={part_delimiter}',
       result['thinking'] if 'thinking' in result else '[without thinking]',
-      f'{part_delimiter}== answer =={part_delimiter}',
+      f'{part_delimiter}== answer ({len(result['response'])}) =={part_delimiter}',
       result['response'],
       delimiter
     ]

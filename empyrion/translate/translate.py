@@ -10,7 +10,6 @@ from rich.markup import escape
 from empyrion.ollama import COllama, СOllamaError
 from empyrion.helpers.templating import CTemplating
 from empyrion.options import options
-from empyrion.helpers.tagcomparator import TagComparator
 from empyrion.translate.lexicon.glossary import CGlossary
 from empyrion.translate.lexicon.characters import CCharacters
 from empyrion.translate.lexicon.examples import CExamples
@@ -18,9 +17,9 @@ from empyrion.helpers.hasher import CHasher
 from empyrion.datasource.datasource import datasource
 from empyrion.state.state import state
 from empyrion.statistics.statistics import statistics
-from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines, similarity_sequence, rich_colorize_hex, remove_tags
+from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines, similarity_sequence, rich_colorize_hex, is_atanchor_in_text, no_letters
 from empyrion.helpers.filesystem import append_to_file
-from empyrion.helpers.tagcleaner import TagCleaner
+from empyrion.helpers.tagsprocessor import tags_processor
 import empyrion.helpers.color as clr
 
 class CTranslate:
@@ -37,13 +36,13 @@ class CTranslate:
     self._glossary = CGlossary()
     self._characters = CCharacters()
     self._examples = CExamples()
-    self._tag_cleaner = TagCleaner()
     self._wrong_translate = []
     self._wrongs_count = 0
     self._counts = {
       'total': 0,
       'translated': 0
     }
+    self._untranslable = options.get("translation.untranslable_strings", [])
     self._save_event_counter = 0
     self._save_event_max = options.get("translation.save_every_nth_query", 10)
 
@@ -61,9 +60,6 @@ class CTranslate:
     self._counts['total'] = total
 
   def _incrementTranslatedObjects(self):
-    self._counts['translated'] += 1
-
-  def _incrementTranslatedString(self):
     self._counts['translated'] += 1
 
   def _translationProgress(self, caption, key):
@@ -102,16 +98,10 @@ class CTranslate:
   def _countEnglishLetters(self, text):
     return sum(1 for c in text if 'a' <= c <= 'z' or 'A' <= c <= 'Z')
 
-  def _prepareText(self, text):
-    return replace_literals_newlines_by_newlines(text).strip()
-
   def _fixResponse(self, text, response):
     for char in ['\n', '.']:
       if text[-1] != char and response[-1] == char:
         response = response[:-1]
-    # for char in ['>', ']']:
-    #   if text[-1] == char and response[-1] != char:
-    #     response += char
     return replace_newlines_by_literals_newlines(response).strip()
 
   def _addToWrongs(self, result, reason):
@@ -128,34 +118,47 @@ class CTranslate:
   def _textIsPlaceholderOrTag(self, s):
     return re.fullmatch(r'[\[\{][a-zA-Z0-9]+[\]\}]', s)
 
-  def _checkResponse(self, source, result):
-    if len(source) > 1 and len(result) > 1 and not re.fullmatch(r'[0-9-\.\s]+', remove_tags(result)):
-      if self._countEnglishLetters(result) >= len(result) / 2 and not self._glossary.isGlossaryPhrase(result):
-        self._addToWrongs(result, f'There is more than half of the untranslated text left. {self._countEnglishLetters(result)} > {len(result) / 2}')
-        self._translateShortLog(source, result)
-        return None
-      if len(source) >= 4 and (len(source) * 4) < len(result):
-        self._addToWrongs(result, f'Result length ({len(result)}) is much larger than the original ({len(source)})')
-        self._translateShortLog(source, result)
-        return None
-      if not self._textIsPlaceholderOrTag(source) and source.strip() == result.strip() and not self._glossary.isGlossaryPhrase(result):
-        self._addToWrongs(result, 'Result unchanged')
-        self._translateShortLog(source, result)
-        return None
-      # if source[0]
-      if result.strip() == '':
+  def _checkResponse(self, source, result, query_context):
+    if result.strip() == '':
         self._addToWrongs(result, 'Result empty')
         self._translateShortLog(source, result)
         return None
-      if not self._textIsPlaceholderOrTag(source) and not TagComparator(source).compare(result):
+    if len(source) > 1 and len(result) > 1:
+      if len(query_context['tags']) > 0 and not self._textIsPlaceholderOrTag(source) and not tags_processor.compare(source, result):
         self._addToWrongs(result, 'The tags are specified incorrectly')
         self._translateShortLog(source, result)
         return None
+      source_without_tags = tags_processor.removeTags(source)
+      result_without_tags = tags_processor.removeTags(result)
+      if len(source_without_tags) > 1 and len(result_without_tags) > 1 and re.fullmatch(r'[0-9-\.\s]+', result_without_tags):
+        if self._countEnglishLetters(result_without_tags) >= len(result_without_tags) / 2 and not self._glossary.isGlossaryPhrase(result_without_tags):
+          self._addToWrongs(result, f'After tags remove there is more than half of the untranslated text left. {self._countEnglishLetters(result_without_tags)} > {len(result_without_tags) / 2}')
+          self._translateShortLog(source, result)
+          return None
+        if len(source_without_tags) >= 4 and (len(source_without_tags) * 4) < len(result_without_tags):
+          self._addToWrongs(result, f'After tags remove result length ({len(result_without_tags)}) is much larger than the original ({len(source_without_tags)})')
+          self._translateShortLog(source, result)
+          return None
+        if not self._textIsPlaceholderOrTag(source_without_tags) and source_without_tags == result_without_tags and not self._glossary.isGlossaryPhrase(result_without_tags):
+          self._addToWrongs(result, 'After remove tags result unchanged')
+          self._translateShortLog(source, result)
+          return None
+      if len(query_context['placeholders']) > 0:
+        for placeholder in query_context['placeholders']:
+          if placeholder not in result_without_tags:
+            self._addToWrongs(result, f'Missing placeholder {placeholder}')
+            self._translateShortLog(source, result)
+            return None
+        for placeholder in self._extractPlaceholders(result_without_tags):
+          if placeholder not in query_context['placeholders']:
+            self._addToWrongs(result, f'Extra placeholder {placeholder}')
+            self._translateShortLog(source, result)
+            return None
     return result
 
   def _findAndTranslateSame(self, original_key, original_text, translated_text):
     for key in self._translation.keys():
-      if key != original_key:
+      if key != original_key and not state.isDuplicateKey(self._translation_file, key): # and not state.keyIsTranslated(self._translation_file, key):
         src_text = self._translation.get_src_language(key)
         if src_text.strip() == original_text.strip():
           self._translation.set_dst_language(key, translated_text)
@@ -163,52 +166,81 @@ class CTranslate:
           self._checkNeedToSave()
           rprint(f'[dark_violet]Same text found and translate in {clr.key(key)}[/dark_violet]')
 
+  def _isUntranslable(self, text):
+    if no_letters(tags_processor.removeTags(text).strip()):
+      return True
+    for part in self._untranslable:
+      if part in text:
+        return True
+    return False
+
+  def _extractPlaceholders(self, text):
+    result = []
+    start = None
+    depth = 0
+
+    for i, ch in enumerate(text):
+      if ch == '{':
+        if depth == 0:
+          start = i  # начало нового плейсхолдера
+        depth += 1
+      elif ch == '}':
+        if depth > 0:
+          depth -= 1
+          if depth == 0 and start is not None:
+            result.append(text[start:i+1])
+            start = None
+    return result
+
   def _prepareQueryContext(self, text, object_context):
     return {
       'object_context': object_context,
       'glossary'      : self._glossary.filter(text),
       'characters'    : self._characters.filter(text, object_context),
       'examples'      : self._examples.filter(text),
+      'placeholders'  : self._extractPlaceholders(text),
+      'tags'          : tags_processor.tagsList(text)
     }
 
-  def _translateOne(self, what, key, object_context):
+  def _translateOne(self, what, key, parent, object_context):
     if not self._translation.exists(key):
       rprint(f'[red]{what.title()} {clr.key(key)} not exists in translation file![/red]')
       return
-
     original_text = self._translation.get_src_language(key)
-    text = self._tag_cleaner.clean(text_for_translate(original_text))
+    text = text_for_translate(original_text)
     query_context = self._prepareQueryContext(text, object_context)
-    hasher = CHasher(self._translation_file, key)
+    hasher = CHasher(self._translation_file, key, parent)
     hasher.append(text)
     hasher.append(query_context)
-
     state.appendOwnedKey(self._translation_file, key)
-
     self._translate(key, what, original_text, text, query_context, hasher)
 
 
   def _translate(self, key, what, original_text, text, query_context, hasher):
-    if state.isTranslated(hasher):
-      rprint(f'[green]{what.title()} {clr.key(key)} already translated[/green]')
+    # if key == 'dialogue_mGauO':
+    #   print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1111')
+    #   rprint(query_context)
+    #   print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1111')
+    if len(original_text.strip()) == 0:
+      rprint(f'[green]{what.title()} {clr.key(key)} text of {what} is [magenta]empty[/magenta].[/green] [grey62]Only store hash[/grey62]')
+      state.appendTranslateState(hasher)
+      state.incrementTranslatedStrings(self._translation_file)
       return
-
+    if self._isUntranslable(original_text):
+      rprint(f'[green]{what} {clr.key(key)}[/green] [yellow]no need translation[/yellow]')
+      state.incrementTranslatedStrings(self._translation_file)
+      return
     if state.isDuplicateKey(self._translation_file, key):
-      rprint(f'[green]{what.title()} {clr.key(key)} value is [magenta]duplicate[/magenta] of another {what}.[/green] [grey62]Only story hash[/grey62]')
+      rprint(f'[green]{what.title()} {clr.key(key)} value is [magenta]duplicate[/magenta] of another {what}.[/green] [grey62]Only store hash[/grey62]')
       state.appendTranslateState(hasher)
       state.incrementTranslatedStrings(self._translation_file)
       state.rmDuplicateKey(self._translation_file, key)
       return
-
-    if len(original_text.strip()) == 0:
-      rprint(f'[green]{what.title()} {clr.key(key)} text of {what} is [magenta]empty[/magenta].[/green] [grey62]Only story hash[/grey62]')
-      state.appendTranslateState(hasher)
-      state.incrementTranslatedStrings(self._translation_file)
+    if state.isTranslated(hasher):
+      rprint(f'[green]{what.title()} {clr.key(key)} already translated[/green]')
       return
-
     counts = state.getStringsCounts(self._translation_file)
     rprint(f'[green]|{counts['processed']} of {counts['total']}| Translating {what} {clr.key(key)}[/green]')
-
     translated_text = self._query(query_context, text)
     self.translateLog(key, text, self._translation.get_dst_language(key), translated_text)
     self._translation.set_dst_language(key, translated_text)
@@ -223,23 +255,28 @@ class CTranslate:
     result = None
     while result is None:
       try:
-        prepared_text = self._prepareText(text)
+        prepared_text = replace_literals_newlines_by_newlines(text).strip()
         system_prompt = self._templating.loadTemplate('prompts', 'system.prompt').render(
-            context=query_context['object_context'],
-            src_language=self._src_language,
-            dst_language=self._dst_language,
-            glossary=query_context['glossary'],
-            characters=query_context['characters'],
-            examples=query_context['examples'],
-            wrongs=self._wrong_translate
+            context      = query_context['object_context'],
+            src_language = self._src_language,
+            dst_language = self._dst_language,
+            glossary     = query_context['glossary'],
+            characters   = query_context['characters'],
+            examples     = query_context['examples'],
+            tags         = query_context['tags'],
+            placeholders = query_context['placeholders'],
+            wrongs       = self._wrong_translate,
+            exists       = {
+              'atanchors'   : is_atanchor_in_text(prepared_text)
+            }
           )
         user_prompt = self._templating.loadTemplate('prompts', 'user.prompt').render(
-            src_language=self._src_language,
-            dst_language=self._dst_language,
-            text=prepared_text
+            src_language = self._src_language,
+            dst_language = self._dst_language,
+            text         = prepared_text
           )
         query_result = self._llm.query(system_prompt, user_prompt)
-        result = self._checkResponse(prepared_text, query_result)
+        result = self._checkResponse(prepared_text, query_result, query_context)
         if self._wrongs_count >= self._wrongs_to_switch_to_smart:
           self._llm.switchToSmartModel()
         if result is not None:
@@ -252,12 +289,13 @@ class CTranslate:
 
   def _translateTails(self):
     rprint(f'[yellow1]Translating orphan strings[/yellow1]')
+    parent = 'wihout_parent'
     for key in self._translation.keys():
       if not state.isOwnedKey(self._translation_file, key):
         original_text = self._translation.get_src_language(key)
-        text = self._tag_cleaner.clean(text_for_translate(original_text))
+        text = text_for_translate(original_text)
         query_context = self._prepareQueryContext(text, {})
-        hasher = CHasher(self._translation_file, key)
+        hasher = CHasher(self._translation_file, key, parent)
         hasher.append(text)
         hasher.append(query_context)
         self._translate(key, 'orphan string', original_text, text, query_context, hasher)

@@ -1,10 +1,11 @@
 {
-  "conf_path": "data",
+  "conf_path": "game",
   "translation":
   {
     "src_language": "English",
     "dst_language": "Russian",
-    "save_every_nth_query": 8
+    "save_every_nth_query": 8,
+    "untranslable_strings": ["whakaatu", "kaitiaki", "taatau", "kaupapa", "whakakake", "whakamatau"]
   },
   "ollama":
   {
@@ -35,7 +36,7 @@
         {
           "temperature": 0.1,
           "top_p": 0.9,
-          "num_ctx": 16384
+          "num_ctx": 32768
         }
       },
       "translategemma:12b-it-q8_0":
@@ -97,6 +98,7 @@
     "childs": true,
     "used_in": true
   },
-  "debug": false,
+  "debug": true,
+  "debug_hasher": true,
   "random_shuffle_objects": false
 }

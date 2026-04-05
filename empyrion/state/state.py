@@ -21,7 +21,10 @@ class CState(CJsonStorage):
     section = self._section('translation', source)
     if section is None:
       return False
-    return key in section
+    for stored_key in section:
+      if key in stored_key:
+        return True
+    return False
 
   def isTranslated(self, hasher):
     section = self._section('translation', hasher.group())
@@ -29,6 +32,7 @@ class CState(CJsonStorage):
       return False
     if hasher.key() not in section:
       return False
+    # print(f'-------------- {hasher.group()}|{hasher.key()}: {section[hasher.key()]} =? {hasher.hash()} --------------')
     return section[hasher.key()] == hasher.hash()
 
   def isDuplicateKey(self, source, key):

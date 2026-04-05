@@ -39,7 +39,7 @@ class CTranslateDialogs(CTranslate):
     context = self._makeContextData(dialog)
     for group in ['npc', 'phrases']:
       for key in dialog[group]:
-        self._translateOne(f"dialog {group}", key, context)
+        self._translateOne(f"dialog {group}", key, dialog['keys'][0], context)
 
   def _totalPhrases(self, dialogs):
     tp = set()

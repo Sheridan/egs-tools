@@ -1,17 +1,13 @@
 import re
 from difflib import SequenceMatcher
-
-def remove_tags(text):
-  text = re.sub(r'\[.*?\]', '', text)
-  text = re.sub(r'<.*?>', '', text)
-  return text
+from empyrion.helpers.tagsprocessor import tags_processor
+# def remove_tags(text):
+#   text = re.sub(r'\[[a-zA-Z0-9-/]+?\]', '', text)
+#   text = re.sub(r'<[a-zA-Z0-9#/]+?>', '', text)
+#   return text
 
 def clean_spaces(text):
   return ' '.join(text.split(' '))
-
-def replace_name_brackets(text):
-  return text
-  # return re.sub(r'\[([\s/a-zA-Z0-9-][^\]]*[^a-zA-Z0-9-])\]', r'|\1|', text)
 
 def remove_atanchor(text):
   return re.sub(r'@[a-z]+\d+', '', text, flags=re.IGNORECASE)
@@ -32,21 +28,13 @@ def remove_all_newlines(text):
   return remove_newlines(remove_newlines_literals(text))
 
 def text_for_context(text):
-  return remove_atanchor(clean_spaces(remove_all_newlines(remove_tags(replace_name_brackets(text)))))
+  return remove_atanchor(clean_spaces(remove_all_newlines(tags_processor.removeTags(text))))
 
 def text_for_translate(text):
-  return replace_name_brackets(text)
+  return text.strip()
 
 def text_for_graph_labels(text):
-  return remove_atanchor(clean_spaces(replace_literals_newlines_by_newlines(remove_tags(replace_name_brackets(text)))))
-
-def is_untranslated_string(text):
-  tmp = remove_tags(text).strip()
-  if tmp in ['===', '-', '====', '---', '...', '- - -']:
-    return True
-  if re.fullmatch(r'\d+/\d+', tmp):
-    return True
-  return False
+  return remove_atanchor(clean_spaces(replace_literals_newlines_by_newlines(tags_processor.removeTags(text))))
 
 def similarity_sequence(text1, text2):
   return SequenceMatcher(None, text1, text2).ratio() * 100
@@ -54,14 +42,8 @@ def similarity_sequence(text1, text2):
 def rich_colorize_hex(s):
   return re.sub(r'([a-fA-F0-9]{6})', r'[#\1]\1[/]', s)
 
-def is_tag(s):
-  # print(s)
-  tag = s[1:-1]
-  tagname = tag.split('=')[0]
-  if len(tagname):
-    if tagname[0] == '/': tagname = tagname[1:]
-    if tagname in ['a', 'u', 'b', '-', 'c', 'sup', 'sub', 'color', 'url']:
-      return True
-    if re.fullmatch(r'(#?[a-fA-F0-9]{6})', tagname):
-      return True
-  return False
+def is_atanchor_in_text(text):
+  return bool(re.search(r'@[a-zA-Z][0-9]', text))
+
+def no_letters(s: str) -> bool:
+  return not any(ch.isalpha() for ch in s)

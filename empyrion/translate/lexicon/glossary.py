@@ -6,9 +6,9 @@ class CGlossary(CLexicon):
     super().__init__("glossary")
 
   def _isInsignificantWord(self, word):
-    if len(word) <= 2:
-      return False
-    return word in ['the', 'and', 'block', 'blocks', 'space', 'light', 'hard']
+    if len(word) < 3:
+      return True
+    return word.lower() in ['the', 'and', 'block', 'blocks', 'space', 'light', 'hard']
 
   def filter(self, text):
     filtered = {}

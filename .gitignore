@@ -1,7 +1,9 @@
-data
+game
 __pycache__
 output/**/*.*
 !output/.keep
 trash
 *log
 output.prof
+*7z
+test.py
