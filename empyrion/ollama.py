@@ -11,6 +11,7 @@ from empyrion.options import options
 from empyrion.helpers.timer import Timer
 from empyrion.statistics.statistics import statistics
 from empyrion.helpers.filesystem import append_to_file
+from empyrion.helpers.strings import estimate_tokens
 
 class СOllamaError(Exception):
   pass
@@ -25,6 +26,7 @@ class COllama:
     }
     self._model = self._models['main']
     self._timeout = options.get("ollama.timeout", 600)
+    self._max_query_tryes=options.get("ollama.max_tryes", 16)
     if not self.isAlive():
       sys.exit("Ollama is not ready")
 
@@ -36,7 +38,7 @@ class COllama:
       return False
 
   def switchToSmartModel(self):
-    self._model = self._models['smart']
+    self._model = self._models['smart'] if  self._models['smart'] != "none" else self._models['main']
 
   def switchToMainModel(self):
     self._model = self._models['main']
@@ -47,9 +49,9 @@ class COllama:
     texts = [
       delimiter,
       f'{part_delimiter}== model: {self._model} =={part_delimiter}',
-      f'{part_delimiter}== system prompt ({len(system_prompt)}) =={part_delimiter}',
+      f'{part_delimiter}== system prompt ({len(system_prompt)}), estimate tokens: {estimate_tokens(system_prompt)} =={part_delimiter}',
       system_prompt,
-      f'{part_delimiter}== user prompt ({len(user_prompt)}) =={part_delimiter}',
+      f'{part_delimiter}== user prompt ({len(user_prompt)}), estimate tokens: {estimate_tokens(user_prompt)} =={part_delimiter}',
       user_prompt,
       f'{part_delimiter}== thinking ({len(result['thinking']) if 'thinking' in result else '-'}) =={part_delimiter}',
       result['thinking'] if 'thinking' in result else '[without thinking]',
@@ -74,9 +76,9 @@ class COllama:
       table = Table(show_lines=True, expand=True)
       table.add_column("---"  , style="magenta", no_wrap=False, highlight=False)
       table.add_column("Debug", style="yellow" , no_wrap=False, highlight=False)
-      table.add_row(f"System\n({len(system_prompt)})", escape(system_prompt))
-      table.add_row(f"User\n({len(user_prompt)})"    , escape(user_prompt))
-      table.add_row(f"Response\n({len(answer)})"     , escape(answer))
+      table.add_row(f"System\nLen: {len(system_prompt)}\nEst Tns\n{estimate_tokens(system_prompt)}", escape(system_prompt))
+      table.add_row(f"User\nLen: {len(user_prompt)}\nEst Tns\n{estimate_tokens(user_prompt)}"    , escape(user_prompt))
+      table.add_row(f"Response\nLen: {len(answer)}\nEst Tns\n{estimate_tokens(answer)}"          , escape(answer))
       Console().print(table)
 
   def _isMetaInResult(self, result):
@@ -101,7 +103,8 @@ class COllama:
         query['prompt'] = user_prompt
       else:
         query['prompt'] = f'{system_prompt}\n{user_prompt}'
-      # rprint(query)
+      # rprint(system_prompt)
+      # rprint(user_prompt)
       response = requests.post(
         f"{self._url}/api/generate",
         json=query,

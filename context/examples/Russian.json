@@ -2,19 +2,6 @@
   "tags":
   [
     {
-      "original": "A string [c][000000]string[-][/c] with tags",
-      "correct":
-      [
-        "Это [c][000000]строка[-][/c] с тегами"
-      ],
-      "wrong":
-      [
-        "Это [c][000000]строка[/c] с тегами",
-        "Это [c][000000]строка[-][/c] с тегами[/tag]",
-        "Это [c][000000]строка[-][/c] с <i>тегами</i>"
-      ]
-    },
-    {
       "original": "<tag>A string with tags</tag>",
       "correct":
       [
@@ -22,43 +9,8 @@
       ],
       "wrong":
       [
-        "Это строка с тегами",
         "[tag]Это строка с тегами[/tag]",
-        "Это строка с тегами[/tag]",
-        "<tag>Это строка с тегами"
-      ]
-    },
-    {
-      "original": "<tag_a><tag_b>A string with tags</tag_b></tag_a>",
-      "correct":
-      [
-        "<tag_a><tag_b>Это строка с тегами</tag_b></tag_a>"
-      ],
-      "wrong":
-      [
-        "<tag_a><tag_b>Это строка с тегами</tag_a></tag_b>"
-      ]
-    },
-    {
-      "original": "<b><color=#000000>A string with tags</color></b>",
-      "correct":
-      [
-        "<b><color=#000000>Это строка с тегами</color></b>"
-      ],
-      "wrong":
-      [
-        "<b<color=#000000>Это строка с тегами</color></b>"
-      ]
-    },
-    {
-      "original": "<tag>A string with tags</tag>",
-      "correct":
-      [
-        "<tag>Это строка с тегами</tag>"
-      ],
-      "wrong":
-      [
-        "[tag]Это строка с тегами[/tag]"
+        "Это строка с тегами"
       ]
     }
   ]

@@ -14,8 +14,15 @@ class CState(CJsonStorage):
   def incrementTranslatedStrings(self, source):
     self._set('processing', 'strings', source, self._last('processing', 'strings', source, 0) + 1)
 
+  def decrementTranslatedStrings(self, source):
+    self._set('processing', 'strings', source, self._last('processing', 'strings', source, 0) - 1)
+
   def appendTranslateState(self, hasher):
     self._set('translation', hasher.group(), hasher.key(), hasher.hash())
+
+  def rmTranslatedByKey(self, source, key):
+    if self._rm('translation', source, key):
+      self.decrementTranslatedStrings(source)
 
   def keyIsTranslated(self, source, key):
     section = self._section('translation', source)
@@ -33,6 +40,7 @@ class CState(CJsonStorage):
     if hasher.key() not in section:
       return False
     # print(f'-------------- {hasher.group()}|{hasher.key()}: {section[hasher.key()]} =? {hasher.hash()} --------------')
+    # print(section[hasher.key()] == hasher.hash())
     return section[hasher.key()] == hasher.hash()
 
   def isDuplicateKey(self, source, key):
@@ -46,10 +54,10 @@ class CState(CJsonStorage):
   def appendDuplicateKey(self, source, key):
     self._add('duplicates', 'translation', source, key)
 
-  def rmDuplicateKey(self, source, key):
-    section = self._section('duplicates', 'translation')
-    if section is not None and source in section:
-      section[source].remove(key)
+  # def rmDuplicateKey(self, source, key):
+  #   section = self._section('duplicates', 'translation')
+  #   if section is not None and source in section:
+  #     section[source].remove(key)
 
   def clearDuplicates(self):
     if self._tool('duplicates') is not None:

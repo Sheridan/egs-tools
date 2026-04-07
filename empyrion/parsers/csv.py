@@ -12,7 +12,6 @@ class CCsv:
     self._load()
     self._src_language_column = self.head_title_index(src_language) - 1
     self._dst_language_column = self.head_title_index(dst_language) - 1
-    # self._set_queries = 0
 
   def _load(self):
     rprint(clr.loadf(self._filename))
@@ -42,12 +41,8 @@ class CCsv:
         writer.writerow([key] + list(self._data[key]))
     self._changed = False
 
-  #def __del__(self):
-  #  if self._changed:
-  #    self.save()
-
   def keys(self):
-    return self._data.keys()
+    return sorted(self._data.keys())
 
   def get(self, key, column):
     return self._data[key][column]
@@ -67,10 +62,6 @@ class CCsv:
   def set(self, key, column, value):
     self._data[key][column] = value
     self._changed = True
-    # self._set_queries += 1
-    # if self._set_queries >= options.get("translation.save_every_nth_query", 10):
-    #   self.save()
-    #   self._set_queries = 0
 
   def set_dst_language(self, key, value):
     self.set(key, self._dst_language_column, value)

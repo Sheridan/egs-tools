@@ -70,6 +70,13 @@ class CJsonStorage:
       return section[name]
     return default
 
+  def _rm(self, tool, section, name):
+    section = self._section(tool, section)
+    if section is not None and name in section:
+      del section[name]
+      return True
+    return False
+
   def _tool(self, tool):
     if self._toolExists(tool):
       return self._data[tool]

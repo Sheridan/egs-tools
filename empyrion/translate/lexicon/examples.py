@@ -20,3 +20,5 @@ class CExamples(CLexicon):
     if self._hasTags(text):
       filtered['tags'] = self._data['tags']
     return filtered
+
+examples = CExamples()

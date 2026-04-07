@@ -1,7 +1,14 @@
 {
   "groups":
   {
-
+    "tal'on":
+    {
+      "characteristic":
+      [
+        "archaic and pompous speech",
+        "orotund and obsolete phraseology"
+      ]
+    }
   },
   "characters":
   {
@@ -27,9 +34,9 @@
         "the chief of the tribe Tal'on",
         "careful",
         "talks politely, but he can flare up",
-        "talks a little pretentiously",
         "worried about the people of his tribe"
-      ]
+      ],
+      "group": "tal'on"
     },
     "ku'reil":
     {
@@ -39,9 +46,9 @@
       [
         "the second most important person in the tribe",
         "easily loses his temper",
-        "talks a little pretentiously",
         "worried about the hunters of his tribe"
-      ]
+      ],
+      "group": "tal'on"
     },
     "ki'eve":
     {
@@ -53,7 +60,8 @@
         "upset about his father's death",
         "he speaks sharply",
         "does not accept arguments"
-      ]
+      ],
+      "group": "tal'on"
     },
     "terminal":
     {

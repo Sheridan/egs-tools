@@ -8,6 +8,7 @@ FILES=(
     "game/Extras/Localization.csv"
     "game/Content/Configuration/Dialogues.csv"
     "trash/state.json"
+    "trash/storage.json"
     "trash/statistics.json"
     "trash/ollama.log"
     "trash/dialogues.translate.log"

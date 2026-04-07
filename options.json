@@ -5,17 +5,21 @@
     "src_language": "English",
     "dst_language": "Russian",
     "save_every_nth_query": 8,
-    "untranslable_strings": ["whakaatu", "kaitiaki", "taatau", "kaupapa", "whakakake", "whakamatau"]
+    "untranslable_strings": [
+        "whakaatu", "kaitiaki", "taatau", "kaupapa", "whakakake", "whakamatau", "manene", "hackan",
+        "sssst", "Arachshe", "Benkult", "Fin fet!", "Hackan li boi", "Qe Genfet", "Nu nu nu", "Bejut",
+        "terrsss", "{LocF(BarkString, Player.PlayfieldName)}"]
   },
   "ollama":
   {
     "url": "http://localhost:11434",
-    "timeout": 600,
+    "timeout": 60,
+    "max_tryes": 32,
     "models":
     {
       "wrongs_to_switch_to_smart": 2,
       "main": "rinex20/translategemma3:12b",
-      "smart": "gemma4:e4b-it-q8_0"
+      "smart": "gemma4:e4b"
     },
     "models_options":
     {
@@ -54,7 +58,7 @@
         "accept_system_prompt": true,
         "api":
         {
-          "temperature": 0.1,
+          "temperature": 0.3,
           "top_p": 0.9,
           "num_ctx": 8192
         }
@@ -79,12 +83,12 @@
           "num_ctx": 16384
         }
       },
-      "gemma4:e4b-it-q8_0":
+      "gemma4:e4b":
       {
         "accept_system_prompt": true,
         "api":
         {
-          "temperature": 0.1,
+          "temperature": 0.3,
           "top_p": 0.9,
           "num_ctx": 16384
         }
@@ -99,6 +103,6 @@
     "used_in": true
   },
   "debug": true,
-  "debug_hasher": true,
+  "debug_hasher": false,
   "random_shuffle_objects": false
 }

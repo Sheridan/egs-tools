@@ -39,7 +39,7 @@ class CTranslateDialogs(CTranslate):
     context = self._makeContextData(dialog)
     for group in ['npc', 'phrases']:
       for key in dialog[group]:
-        self._translateOne(f"dialog {group}", key, dialog['keys'][0], context)
+        self._translateOne(f"dialog {group}", key, context)
 
   def _totalPhrases(self, dialogs):
     tp = set()
@@ -48,12 +48,26 @@ class CTranslateDialogs(CTranslate):
         tp.update(dialog[group])
     return len(tp)
 
+  def _orphanCommonPhrases(self, dialogs):
+    counter = {}
+    for dialog in dialogs:
+      for phrase in dialog['phrases']:
+        if phrase not in counter:
+          counter[phrase] = 0
+        counter[phrase] += 1
+    counter = {k: v for k, v in counter.items() if v > 1}
+    for dialog in dialogs:
+      for cphrase in counter.keys():
+        if cphrase in dialog['phrases']:
+          dialog['phrases'].remove(cphrase)
+    # rprint(counter)
+    return dialogs
+
   def translate(self):
-    dialogs = CDialogs().dialogs()
+    dialogs = self._orphanCommonPhrases(CDialogs().rootDialogs())
     self._setTotalObjects(len(dialogs))
     for dialog in dialogs:
-      self._translationProgress(f'dialog', dialog['keys'][0])
+      self._translationProgress(f'dialog', dialog['root'])
       self._translateDialog(dialog)
       self._incrementTranslatedObjects()
-    self._translateTails()
-    self._translation.save()
+    self.saveAll()

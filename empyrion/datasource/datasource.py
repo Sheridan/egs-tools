@@ -49,6 +49,12 @@ class CDataSource:
       self._data[source] = self._loadSource(source)
     return self._data[source]
 
+  def datasources(self, group):
+    return self._sources[group].keys()
+
+  def exists(self, group, name):
+    return name in self._sources[group]
+
   # def objectsCount(self, group):
   #   totals = {}
   #   return totals

@@ -29,7 +29,7 @@ class CTranslateThings(CTranslate):
     key = thing['labels']['labels_keys'][what]
     if key in self._already_sheduled:
       return
-    self._translateOne(f"thing {what}", key, 'without_parent', self._makeContextData(thing))
+    self._translateOne(f"thing {what}", key, self._makeContextData(thing))
     self._already_sheduled.append(key)
 
   # def _totalPhrases(self, things):
@@ -52,4 +52,4 @@ class CTranslateThings(CTranslate):
           self._translateThing(thing, what)
       self._incrementTranslatedObjects()
     self._translateTails()
-    self._translation.save()
+    self.saveAll()

@@ -1,2 +1,30 @@
-Please translate ONLY the following {{ src_language }} text into {{ dst_language }} and double-check the translation:
+{# Errors #}
+{% if errors | length > 0 -%}
+FEEDBACK FROM PREVIOUS TRANSLATION (MUST APPLY)
+You previously made the following errors. Analyze them carefully and strictly apply these corrections to your current translation task. DO NOT repeat any of these mistakes.
+
+YOUR PREVIOUS FLAWED TRANSLATION (FOR REFERENCE ONLY):
+=== BEGIN PREVIOUS TRANSLATION ===
+{{ errors['text'] }}
+=== END PREVIOUS TRANSLATION ===
+
+IDENTIFIED ERRORS & REQUIRED CORRECTIONS:
+=== BEGIN ERROR LIST ===
+{% for error in errors['errors'] -%}
+* {{ error }}
+{% endfor %}
+=== END ERROR LIST ===
+
+ACTION REQUIRED:
+1. Internalize each error as a translation rule for this session.
+2. Apply these rules to the NEW source text you are translating now.
+3. Self-check before outputting: verify terminology, grammar, style, and formatting against the error list.
+4. Output ONLY the final translation of the new text. Do NOT rewrite the previous text.
+{%- endif %}
+
+Rules:
+* Strictly follow the orthographic, punctuation, and grammatical (morphological and syntactic) norms of the standard literary {{ dst_language }} language, avoiding colloquial and vernacular mistakes as well as unjustified borrowings and bureaucratic clichés, unless the task explicitly requires otherwise.
+* Double-check the translation
+
+Translate from {{ src_language }} into {{ dst_language }} ONLY following text:
 {{ text }}

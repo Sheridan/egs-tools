@@ -217,7 +217,7 @@ class CEcf:
           self._appendSection(section[0], section[1])
 
   def keys(self):
-    return self._data[self._name].keys()
+    return sorted(self._data[self._name].keys())
 
   def count(self):
     return len(self._data[self._name])

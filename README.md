@@ -143,6 +143,11 @@ In addition to the data sources mentioned above, icons are also needed. They can
 # Custom Scenarios
 If you work with custom scenarios, then `*.ecf` and `*.csv` files should be taken from the scenarios. If the scenario has additional icons (needed only for graphs), you should copy them as well.
 
+# other
+- `python main.py --search Legacy | less`
+- `python main.py --list localization | less`
+- `python main.py --show-key Eden_TradePolarisT2`
+
 # Dependencies
 * python library [rich](https://rich.readthedocs.io/en/latest/)
 * graphviz (only for graphs)
