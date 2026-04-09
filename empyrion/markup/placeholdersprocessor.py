@@ -20,14 +20,14 @@ class CPlaceholdersProcessor(CProcessor):
           if depth == 0 and start is not None:
             result.append(text[start:i+1])
             start = None
-    return list(result)
+    return sorted(result)
 
   def _getDifferenceString(self, missing_ph, extra_ph):
     result = []
     if len(missing_ph) > 0:
-      result.append(f'Missing placeholders: {', '.join(missing_ph)}')
+      result.append(f'Missing placeholders: {', '.join(missing_ph)}. Add the specified placeholders to the translated text in the same context as they were in the original text.')
     if len(extra_ph) > 0:
-      result.append(f'Extra placeholders: {', '.join(extra_ph)}')
+      result.append(f'Extra placeholders: {', '.join(extra_ph)}. Remove these placeholders from the translation. They must not appear in the output.')
     return '; '.join(result)
 
   def _compare(self, original, translated):
@@ -50,5 +50,18 @@ class CPlaceholdersProcessor(CProcessor):
     if start == -1:
       return False
     return text.find('}', start + 1) != -1
+
+  def removePlaceholders(self, text: str) -> str:
+      result = []
+      depth = 0
+      for ch in text:
+          if ch == '{':
+              depth += 1
+          elif ch == '}':
+              if depth > 0:
+                  depth -= 1
+          elif depth == 0:
+              result.append(ch)
+      return ''.join(result)
 
 placeholders_processor = CPlaceholdersProcessor()

@@ -14,7 +14,7 @@ class CCharacters(CLexicon):
 
   def filter(self, text, object_context):
     filtered = {}
-    cleaned = self._cleanText(text)
+    cleaned = self._cleanText(text).lower()
     for key in self._data['characters']:
       character = self._getCharacter(self._data['characters'][key])
 

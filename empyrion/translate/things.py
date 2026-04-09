@@ -46,7 +46,7 @@ class CTranslateThings(CTranslate):
     loaded_things = things.things(True)
     self._setTotalObjects(len(loaded_things))
     for thing in loaded_things:
-      self._translationProgress(f'thing', thing['merged']['Name'])
+      self._objectsProgress(f'thing', thing['merged']['Name'])
       if thing['labels']:
         for what in ['caption', 'description']:
           self._translateThing(thing, what)

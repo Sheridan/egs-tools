@@ -68,21 +68,23 @@ class CDialogs:
     return dialog
 
   def _loadDialogs(self):
-    for key in self._datasource.keys():
+    # 🔹 Явная сортировка ключей источника данных
+    for key in sorted(self._datasource.keys()):
       self._dialogs[key] = self._loadDialog(key)
 
   def _bageRoots(self):
     rprint(f'[green]Finding root dialogs[/green]')
-    for _, dialog in self._dialogs.items():
+    # 🔹 Явная сортировка итерации по словарю диалогов
+    for _, dialog in sorted(self._dialogs.items()):
       for child in dialog['childs']:
         self._dialogs[child]['parents'].append(dialog['key'])
 
-  def _flatDialog(self, root, childs):
+  def _flatDialog(self, root, visited):
     dialog = {'root': root['key'], 'keys': [root['key']], 'phrases': list(root['phrases']), 'npc': list(root['npc'])}
     for child in root['childs']:
-      if child not in childs:
-        childs.add(child)
-        c_root = self._flatDialog(self._dialogs[child], childs)
+      if child not in visited:
+        visited.add(child)  # set идеален для O(1) проверки посещённых
+        c_root = self._flatDialog(self._dialogs[child], visited)
         for pkey in ['phrases', 'npc', 'keys']:
           for item in c_root[pkey]:
             if item not in dialog[pkey]:
@@ -92,7 +94,8 @@ class CDialogs:
   def _rootDialogs(self):
     rprint(f'[green]Extract root dialogs[/green]')
     roots = []
-    for _, dialog in self._dialogs.items():
+    # 🔹 Явная сортировка при поиске корней
+    for _, dialog in sorted(self._dialogs.items()):
       if len(dialog['parents']) == 0:
         dialog = self._flatDialog(dialog, set())
         if len(dialog['phrases']) > 0:

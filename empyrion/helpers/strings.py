@@ -1,11 +1,14 @@
 import re
 from difflib import SequenceMatcher
-from empyrion.markup.tagsprocessor import tags_processor
-from empyrion.markup.atanchorsprocessor import atanchors_processor
+from empyrion.helpers.bracketsreplacer import CBracketsReplacer
+
 # def remove_tags(text):
 #   text = re.sub(r'\[[a-zA-Z0-9-/]+?\]', '', text)
 #   text = re.sub(r'<[a-zA-Z0-9#/]+?>', '', text)
 #   return text
+
+def replace_namebrackets(text):
+  return CBracketsReplacer(text).replace()
 
 def clean_spaces(text):
   return ' '.join(text.split(' '))
@@ -25,14 +28,18 @@ def replace_literals_newlines_by_newlines(text):
 def remove_all_newlines(text):
   return remove_newlines(remove_newlines_literals(text))
 
+def remove_fs_paths(text: str) -> str:
+    return re.sub(r'(?:[A-Za-z0-9_.\-]+/){2,}', '', text)
+    # cleaned = re.sub(r'\s{2,}', ' ', cleaned).strip()
+
 def text_for_context(text):
-  return atanchors_processor.removeAtAnchors(clean_spaces(remove_all_newlines(tags_processor.removeTags(text))))
+  return clean_spaces(tags_processor.removeTags(placeholders_processor.removePlaceholders(atanchors_processor.removeAtAnchors(remove_all_newlines(remove_fs_paths(text))))))
 
 def text_for_translate(text):
-  return text.strip()
+  return replace_namebrackets(text).strip()
 
 def text_for_graph_labels(text):
-  return atanchors_processor.removeAtAnchors(clean_spaces(replace_literals_newlines_by_newlines(tags_processor.removeTags(text))))
+  return placeholders_processor.removePlaceholders(atanchors_processor.removeAtAnchors(clean_spaces(replace_literals_newlines_by_newlines(tags_processor.removeTags(text)))))
 
 def similarity_sequence(text1, text2):
   return SequenceMatcher(None, text1, text2).ratio() * 100
@@ -53,3 +60,13 @@ def estimate_tokens(text: str) -> str:
 
 def count_english_letters(text):
   return sum(1 for c in text if 'a' <= c <= 'z' or 'A' <= c <= 'Z')
+
+def count_other_letters(text):
+  return sum(1 for c in text if not ('a' <= c <= 'z' or 'A' <= c <= 'Z') and c.isalpha())
+
+def quoted_list(l):
+  return ', '.join(f"'{i}'" for i in l)
+
+from empyrion.markup.tagsprocessor import tags_processor
+from empyrion.markup.atanchorsprocessor import atanchors_processor
+from empyrion.markup.placeholdersprocessor import placeholders_processor

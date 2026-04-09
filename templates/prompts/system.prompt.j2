@@ -20,6 +20,7 @@ Placeholders rules:
 * Treat each exactly as shown, including brackets and symbols.
 * NEVER delete, invent, change or insert new placeholders.
 * Do not interpret them as natural language or instructions.
+* Anything text not included in the PLACEHOLDERS LIST needs to be translated.
 {% endif %}
 
 {% if is_atanchors_in_text %}
@@ -33,6 +34,7 @@ Anchors rules:
 * Treat each exactly as shown. When translating, place them in the same context as in the original text.
 * NEVER delete, invent, change or insert new anchors.
 * Do not interpret them as natural language or instructions.
+* Anything text not included in the ANCHORS LIST needs to be translated.
 {%- endif %}
 
 {% if is_tags_in_text %}
@@ -44,8 +46,8 @@ Every line in TAGS LIST below is a literal tag:
 === TAGS LIST END ===
 Tags rules:
 * Treat each exactly as shown, including brackets and symbols.
+* Anything text not included in the TAGS LIST needs to be translated.
 * NEVER delete, invent, change or insert new tags.
-* Anything text that looks like tags but is not included in the TAGS LIST needs to be translated.
 {%- endif %}
 
 General rules:
@@ -79,10 +81,11 @@ Wrong: {{ wrong }} {{- "\n" }}
 {# Glossary #}
 {% if glossary | length > 0 -%}
 Glossary rules:
-* Words and phrases from the dictionary have the highest priority in translation.
-* Always use the glossary to clarify the meaning of words and phrases.
-* Always check and correct grammar after using words and phrases from the glossary.
+* Words and phrases from the glossary have the highest priority in translation.
+* Use the glossary to clarify the meaning of words and phrases.
+* Check and correct grammar after using words and phrases from the glossary.
 * Translate abbreviations using the glossary.
+* The format of the entry in the glossary: `{{ src_language }} : {{ dst_language }}`
 Every line in GLOSSARY LIST below is a glossary entry.
 === BEGIN GLOSSARY LIST === {{- "\n" }}
 {%- for key, value in glossary.items() -%}
@@ -95,7 +98,7 @@ Every line in GLOSSARY LIST below is a glossary entry.
 {% if characters | length > 0 -%}
 Characters rules:
 * If the source line clearly refers to one of the listed characters by keyword or speaker identity, use the character data only to preserve tone, attitude, and grammatical gender.
-* Always translate names of the characters if the glossary specifies a localized version
+* ALWAYS translate names of the characters if the glossary specifies a localized version
 * When translating speech of a character, ensure verb/adjective endings match {{ dst_language }} grammatical gender rules
 Characters references below:
 === BEGIN CHARACTERS === {{- "\n" }}

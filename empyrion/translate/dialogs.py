@@ -4,7 +4,6 @@ from empyrion.model.dialogs import CDialogs
 from empyrion.translate.translate import CTranslate
 from empyrion.helpers.strings import text_for_context
 
-
 class CTranslateDialogs(CTranslate):
   def __init__(self):
     super().__init__('dialogues')
@@ -13,19 +12,21 @@ class CTranslateDialogs(CTranslate):
 
   def _buildExcludedFromContext(self):
     self._excluded_from_context['substr'] = ['(back)', '(leave)', '>Back<', '>Leave<', 'Confirm Order (', 'Register (']
-    for ex in ['Exit', 'Leave', 'Back', 'Set', 'Cancel', 'Continue', 'Clear', 'Yes', 'No', 'Maybe', 'Log off', 'Goodbye', 'Confirm']:
+    for ex in ['Exit', 'Leave', 'Back', 'Set', 'Cancel', 'Continue', 'Clear', 'Yes', 'No', 'Maybe', 'Log off', 'Goodbye', 'Confirm', 'Understood']:
       for ex_variant in [ex, f"{ex}.", ex.lower(), ex.capitalize(), ex.upper(), ex.title()]:
         self._excluded_from_context['str'].append(ex_variant)
 
   def _loadTexts(self, key_name, keys):
     result = {}
+    seen_texts = set()  # 🔹 Set используется ТОЛЬКО для проверки вхождения (O(1)), порядок не важен
     i = 0
     for key in keys:
       src_text = text_for_context(self._translation.get_src_language(key))
       if (all(sub not in src_text for sub in self._excluded_from_context['substr']) and
           src_text not in self._excluded_from_context['str'] and
-          src_text not in result.values()):
+          src_text not in seen_texts):
         result[f'{key_name} {i}'] = src_text
+        seen_texts.add(src_text)
         i += 1
     return result
 
@@ -52,22 +53,22 @@ class CTranslateDialogs(CTranslate):
     counter = {}
     for dialog in dialogs:
       for phrase in dialog['phrases']:
-        if phrase not in counter:
-          counter[phrase] = 0
-        counter[phrase] += 1
-    counter = {k: v for k, v in counter.items() if v > 1}
+        counter[phrase] = counter.get(phrase, 0) + 1
+
+    # 🔹 Явная сортировка частых фраз гарантирует одинаковый порядок удаления
+    common_phrases = sorted([k for k, v in counter.items() if v > 1])
+
     for dialog in dialogs:
-      for cphrase in counter.keys():
+      for cphrase in common_phrases:
         if cphrase in dialog['phrases']:
           dialog['phrases'].remove(cphrase)
-    # rprint(counter)
     return dialogs
 
   def translate(self):
     dialogs = self._orphanCommonPhrases(CDialogs().rootDialogs())
     self._setTotalObjects(len(dialogs))
     for dialog in dialogs:
-      self._translationProgress(f'dialog', dialog['root'])
+      self._objectsProgress(f'dialog', dialog['root'])
       self._translateDialog(dialog)
       self._incrementTranslatedObjects()
     self.saveAll()

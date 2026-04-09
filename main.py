@@ -41,11 +41,6 @@ def main():
     graph = CGraph()
     graph.construct()
 
-  if args.isRemoveTranslationDuplicates():
-    from empyrion.state.state import state
-    state.clearDuplicates()
-    state.save()
-
   if args.isShow():
     showKey(args.getOptionValue('show'), args.getOptionValue('rm'))
 

@@ -4,8 +4,6 @@ from rich.table import Table
 from rich.markup import escape
 
 from empyrion.datasource.datasource import datasource
-from empyrion.state.state import state
-from empyrion.state.translationstorage import CTranslationStorage
 from empyrion.helpers.strings import replace_literals_newlines_by_newlines
 
 class CView:
@@ -13,9 +11,10 @@ class CView:
     self._storages = {}
 
   def _storage(self, source):
-    if source not in self._storages:
-      self._storages[source] = CTranslationStorage(source)
-    return self._storages[source]
+    pass
+    # if source not in self._storages:
+      # self._storages[source] = CTranslationStorage(source)
+    # return self._storages[source]
 
   def _render(self, records):
     table = Table(expand=True, show_lines=True)
@@ -85,7 +84,5 @@ class CView:
   def _rmKey(self, key):
     for name in datasource.datasources('translation'):
       if datasource[name].exists(key):
-        state.rmTranslatedByKey(name, key)
         self._storage(name).rm(key)
-        state.save()
         self._storage(name).save()

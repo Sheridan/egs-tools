@@ -3,7 +3,6 @@ import re
 from rich import print as rprint
 from empyrion.model.pda import CPda
 from empyrion.translate.translate import CTranslate
-from empyrion.state.state import state
 from empyrion.helpers.strings import text_for_context
 
 class CTranslatePda(CTranslate):
@@ -80,7 +79,7 @@ class CTranslatePda(CTranslate):
     pda = CPda().pda()
     self._setTotalObjects(len(pda))
     for chapter in pda:
-      self._translationProgress(f'PDA Chapter', chapter['title'])
+      self._objectsProgress(f'PDA Chapter', chapter['title'])
       self._translateChapter(chapter)
       self._incrementTranslatedObjects()
     self._translateTails()

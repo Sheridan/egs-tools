@@ -1,19 +1,38 @@
 import re
+import sys
+import pprint
 from empyrion.translate.lexicon.lexicon import CLexicon
+from empyrion.helpers.strings import no_letters
 
 class CGlossary(CLexicon):
   def __init__(self):
     super().__init__("glossary")
-    self._insignificant_words = ['the', 'and', 'block', 'blocks', 'space', 'light', 'hard']
     self._re_cache = {}
+    self._flat = {}
+    self._flattern()
 
   # def _build(self):
 
+  def _flattern(self):
+    for group in self._data['glossary']:
+      for key, value in self._data['glossary'][group].items():
+        if key in self._flat:
+          sys.exit(f"Duplicated key '{key}' in glossary")
+        self._flat[key] = value
+    # pprint.pprint(self._flat)
+
+  def _isUntranslable(self, text):
+    if no_letters(self._cleanText(text)):
+      return True
+    for part in self._data['untranslable']:
+      if part in text:
+        return True
+    return False
 
   def _isInsignificantWord(self, word):
     if len(word) < 3:
       return True
-    return word.lower() in self._insignificant_words
+    return word.lower() in self._data['insignificant_words']
 
   def _wordInText(self, word, text):
     if word not in self._re_cache:
@@ -23,32 +42,30 @@ class CGlossary(CLexicon):
   def filter(self, text):
     filtered = {}
     cleaned = self._cleanText(text)
-    for group in self._data:
-      for key, value in self._data[group].items():
-        if self._wordInText(key.lower(), cleaned):
+    cleaned_lower = cleaned.lower()
+    for key, value in self._flat.items():
+      if self._wordInText(key.lower(), cleaned_lower):
+        filtered[key] = value
+        continue
+      for key_word in key.lower().split():
+        if not self._isInsignificantWord(key_word) and self._wordInText(key_word, cleaned_lower):
           filtered[key] = value
-          continue
-        for key_word in key.lower().split():
-          if not self._isInsignificantWord(key_word) and self._wordInText(key_word, cleaned):
-            filtered[key] = value
     return filtered
 
   def isGlossaryPhrase(self, text):
     cleaned = self._cleanText(text)
-    for group in self._data:
-      for key in self._data[group]:
-        if self._data[group][key].lower() == cleaned:
-          return True
+    for key in self._flat:
+      if self._flat[key].lower() == cleaned.lower():
+        return True
     return False
 
   def untranslatedEntryes(self, text):
-    text = text.lower()
+    cleaned = self._cleanText(text).lower()
     result = set()
-    for group in self._data:
-      for key, value in self._data[group].items():
-        lkey = key.lower()
-        if self._wordInText(lkey, text) and lkey != value.lower():
-          result.add(key)
+    for key, value in self._flat.items():
+      lkey = key.lower()
+      if self._wordInText(lkey, cleaned) and lkey != value.lower():
+        result.add(key)
     return sorted(result)
 
 glossary = CGlossary()

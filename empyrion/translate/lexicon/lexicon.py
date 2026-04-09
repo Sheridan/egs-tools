@@ -1,6 +1,6 @@
 import json
 from empyrion.options import options
-from empyrion.helpers.strings import text_for_translate
+from empyrion.helpers.strings import text_for_context
 from rich import print as rprint
 import empyrion.helpers.color as clr
 
@@ -15,4 +15,4 @@ class CLexicon:
         return json.load(f)
 
   def _cleanText(self, text):
-    return text_for_translate(text.lower())
+    return text_for_context(text)

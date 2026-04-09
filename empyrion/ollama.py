@@ -8,8 +8,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.markup import escape
 from empyrion.options import options
-from empyrion.helpers.timer import Timer
-from empyrion.statistics.statistics import statistics
+from empyrion.database.stat import statistics
 from empyrion.helpers.filesystem import append_to_file
 from empyrion.helpers.strings import estimate_tokens
 
@@ -18,13 +17,12 @@ class СOllamaError(Exception):
 
 class COllama:
   def __init__(self):
-    self._timer = Timer()
     self._url = options.get("ollama.url", "http://localhost:11434")
     self._models = {
-      'main': options.get("ollama.models.main"),
-      'smart': options.get("ollama.models.smart"),
+      'translator': options.get("ollama.models.translator"),
+      'reasoner'  : options.get("ollama.models.reasoner", "none"),
     }
-    self._model = self._models['main']
+    self._model = self._models['translator']
     self._timeout = options.get("ollama.timeout", 600)
     self._max_query_tryes=options.get("ollama.max_tryes", 16)
     if not self.isAlive():
@@ -37,11 +35,11 @@ class COllama:
     except (requests.exceptions.RequestException, requests.exceptions.Timeout):
       return False
 
-  def switchToSmartModel(self):
-    self._model = self._models['smart'] if  self._models['smart'] != "none" else self._models['main']
+  def switchToReasonerModel(self):
+    self._model = self._models['reasoner'] if  self._models['reasoner'] != "none" else self._models['translator']
 
-  def switchToMainModel(self):
-    self._model = self._models['main']
+  def switchToTranslatorModel(self):
+    self._model = self._models['translator']
 
   def _log(self, system_prompt, user_prompt, result):
     delimiter = ':'*80
@@ -61,10 +59,7 @@ class COllama:
     ]
     append_to_file('ollama', '\n'.join(texts))
 
-  def printStat(self, result):
-    if not self._isMetaInResult(result):
-      return
-    rprint(f"Tokens in: [green4]{result['prompt_eval_count']}[/green4]; out: [turquoise4]{result['eval_count']}[/turquoise4]")
+  def printThinking(self, result):
     if 'thinking' in result:
       table = Table(expand=True)
       table.add_column("Thinking", style="deep_sky_blue4")
@@ -81,9 +76,6 @@ class COllama:
       table.add_row(f"Response\nLen: {len(answer)}\nEst Tns\n{estimate_tokens(answer)}"          , escape(answer))
       Console().print(table)
 
-  def _isMetaInResult(self, result):
-    return 'prompt_eval_count' in result and 'eval_count' in result
-
   def _preparePrompt(self, prompt):
     return re.sub(r'\n{2,}', '\n\n', prompt)
 
@@ -92,10 +84,10 @@ class COllama:
     user_prompt = self._preparePrompt(user_prompt)
     try:
       rprint(f'Using model [bright_cyan]{self._model}[/bright_cyan]')
-      self._timer.start()
       query = {
           "model": self._model,
           "stream": False,
+          "think": options.get(f"ollama.models_options.{self._model}.think", False),
           "options": options.get(f"ollama.models_options.{self._model}.api", {})
         }
       if options.get(f"ollama.models_options.{self._model}.accept_system_prompt", False):
@@ -111,13 +103,12 @@ class COllama:
         timeout=self._timeout
       )
       response.raise_for_status()
-      elapsed = self._timer.stop()
       result = response.json()
       # rprint(result)
       answer = result.get("response", "")
-      if self._isMetaInResult(result):
-        statistics.appendLLMQueryMetrics(self._model, elapsed, result['prompt_eval_count'], result['eval_count'])
-      self.printStat(result)
+      statistics.append(len(system_prompt) + len(user_prompt), result)
+      # statistics.show()
+      self.printThinking(result)
       self._queryLog(system_prompt, user_prompt, answer)
       self._log(system_prompt, user_prompt, result)
       return answer

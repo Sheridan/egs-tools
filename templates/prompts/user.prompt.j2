@@ -11,11 +11,11 @@ YOUR PREVIOUS FLAWED TRANSLATION (FOR REFERENCE ONLY):
 IDENTIFIED ERRORS & REQUIRED CORRECTIONS:
 === BEGIN ERROR LIST ===
 {% for error in errors['errors'] -%}
-* {{ error }}
-{% endfor %}
+* {{ error }} {{- "\n" }}
+{%- endfor -%}
 === END ERROR LIST ===
 
-ACTION REQUIRED:
+HIGH-PRIORITY ACTION REQUIRED:
 1. Internalize each error as a translation rule for this session.
 2. Apply these rules to the NEW source text you are translating now.
 3. Self-check before outputting: verify terminology, grammar, style, and formatting against the error list.

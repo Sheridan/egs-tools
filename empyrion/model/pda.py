@@ -15,22 +15,22 @@ class CPda:
       return yaml.safe_load(file)
 
   def _extractValues(self, complex_value):
-    values = []
+    values = set()
     if '|' in complex_value:
       splitted = complex_value.split('|')
       for part in splitted:
         if ';' in part or part.strip() == '':
           continue
         elif 'pda_' in part.lower():
-          values.append(part.strip())
+          values.add(part.strip())
     return values
 
   def _loadMessages(self, group):
-    messages = []
+    messages = set()
     for name in ['StartMessage', 'CompletedMessage']:
       if self._keyExists(group, name):
-        messages += self._extractValues(group[name])
-    return messages
+        messages.update(self._extractValues(group[name]))
+    return sorted(messages)
 
   def _keyExists(self, group, key):
     exists = key in group and group[key]

@@ -13,62 +13,55 @@ from empyrion.options import options
 from empyrion.translate.lexicon.glossary import glossary
 from empyrion.translate.lexicon.characters import characters
 from empyrion.translate.lexicon.examples import examples
-from empyrion.helpers.hasher import CHasher
 from empyrion.datasource.datasource import datasource
-from empyrion.state.state import state
-from empyrion.state.translationstorage import CTranslationStorage
-from empyrion.statistics.statistics import statistics
+from empyrion.database.stat import statistics
 from empyrion.helpers.strings import text_for_translate, replace_literals_newlines_by_newlines, replace_newlines_by_literals_newlines, similarity_sequence, rich_colorize_hex, no_letters
 from empyrion.helpers.filesystem import append_to_file
 from empyrion.markup.tagsprocessor import tags_processor
 from empyrion.markup.placeholdersprocessor import placeholders_processor
 from empyrion.markup.atanchorsprocessor import atanchors_processor
 from empyrion.translate.translationchecker import CTranslationChecker
+from empyrion.database.state import CStateDB
 import empyrion.helpers.color as clr
 
 class CTranslate:
   def __init__(self, translation_file):
     self._translation_file = translation_file
     self._translation = datasource[self._translation_file]
-    state.setStringsTotal(self._translation_file, self._translation.count())
     self._llm = COllama()
     self._templating = CTemplating()
-    self._translation_storage = CTranslationStorage(self._translation_file)
+    self._db = CStateDB(self._translation_file)
     self._sleep_on_error = 8
     self._src_language=options.get("translation.src_language", "English")
     self._dst_language=options.get("translation.dst_language", "Russian")
     self._max_query_tryes=options.get("ollama.max_tryes", 16)
-    self._wrongs_to_switch_to_smart = options.get("ollama.models.wrongs_to_switch_to_smart", 4)
-    self._counts = {
-      'total': 0,
-      'translated': 0
-    }
-    self._untranslable = options.get("translation.untranslable_strings", [])
+    self._objects_counts = { 'total': 0, 'translated': 0 }
     self._save_event_counter = 0
     self._save_event_max = options.get("translation.save_every_nth_query", 10)
 
   def saveAll(self):
     self._translation.save()
-    state.save()
-    statistics.save()
-    self._translation_storage.save()
 
   def _checkNeedToSave(self):
     self._save_event_counter += 1
     if self._save_event_counter >= self._save_event_max:
       self.saveAll()
       self._save_event_counter = 0
-      state.showKnownKeysTranslateState()
-      statistics.showLLM()
+      statistics.show()
+      self._db.showTranslateState()
 
   def _setTotalObjects(self, total):
-    self._counts['total'] = total
+    self._objects_counts['total'] = total
 
   def _incrementTranslatedObjects(self):
-    self._counts['translated'] += 1
+    self._objects_counts['translated'] += 1
 
-  def _translationProgress(self, caption, key):
-    return rprint(f"|[yellow]{self._counts['translated'] + 1} of {self._counts['total']}[/yellow]| Processing {clr.objCaption(caption)} with key {clr.key(key)}")
+  def _objectsProgress(self, caption, key):
+    return rprint(f"|[yellow]{self._objects_counts['translated'] + 1} of {self._objects_counts['total']}[/yellow]| Processing {clr.objCaption(caption)} with key {clr.key(key)}")
+
+  def _stringsProgress(self):
+    counts = self._db.getStringsCounts()
+    return f'[medium_purple1]|{counts['processed']} of {counts['total']}|[/medium_purple1]'
 
   def translateLog(self, key, text, previous, current):
     table = Table(title=f'Translation {self._translation_file} {clr.key(key)}', caption=f'Similarity between Previous and Current: {similarity_sequence(previous, current):.2f}%', expand=True)
@@ -82,7 +75,6 @@ class CTranslate:
     self._fileLog(table)
 
   def _fileLog(self, table):
-    log_filename = f'trash/.log'
     console = Console(no_color=True, force_terminal=False)
     with console.capture() as capture:
       console.print(table)
@@ -109,22 +101,13 @@ class CTranslate:
 
   def _findAndTranslateSame(self, original_key, original_text, translated_text):
     for key in self._translation.keys():
-      if key != original_key and not state.isDuplicateKey(self._translation_file, key): # and not state.keyIsTranslated(self._translation_file, key):
+      if key != original_key and not self._db.isDuplicateKey(key) and not self._db.keyIsTranslated(key):
         src_text = self._translation.get_src_language(key)
         if src_text.strip() == original_text.strip():
           self._translation.set_dst_language(key, translated_text)
-          state.appendDuplicateKey(self._translation_file, key)
-          state.incrementTranslatedStrings(self._translation_file)
+          self._db.appendDuplicateKey(original_key, key)
           self._checkNeedToSave()
-          rprint(f'[dark_violet]Same text found and translate in {clr.key(key)}[/dark_violet]')
-
-  def _isUntranslable(self, text):
-    if no_letters(tags_processor.removeTags(text).strip()):
-      return True
-    for part in self._untranslable:
-      if part in text:
-        return True
-    return False
+          rprint(f'{self._stringsProgress()} [dark_violet]Same text found and translate in {clr.key(key)}[/dark_violet]')
 
   def _reTranslateNeeded(self, key, original_text):
     translation_checker = CTranslationChecker(original_text, self._translation.get_dst_language(key))
@@ -150,63 +133,58 @@ class CTranslate:
       rprint(f'[red]{what.title()} {clr.key(key)} not exists in translation file![/red]')
       return
     original_text = self._translation.get_src_language(key)
-    text = text_for_translate(original_text)
-    query_context = self._prepareQueryContext(text, object_context)
-    hasher = CHasher(self._translation_file, key)
-    hasher.append(text)
-    hasher.append(query_context)
-    state.appendOwnedKey(self._translation_file, key)
-    self._translate(key, what, original_text, text, query_context, hasher)
+    text_4_translate = text_for_translate(original_text)
+    query_context = self._prepareQueryContext(text_4_translate, object_context)
+    self._db.appendOwnedKey(key)
+    self._translate(key, what, original_text, text_4_translate, query_context)
 
 
-  def _translate(self, key, what, original_text, text, query_context, hasher):
-
+  def _translate(self, key, what, original_text, text_4_translate, query_context):
     if len(original_text.strip()) == 0:
       rprint(f'[green]{what.title()} {clr.key(key)} text of {what} is [magenta]empty[/magenta].[/green] [grey62]We are not doing anything[/grey62]')
       return
 
-    if self._isUntranslable(original_text):
+    if glossary._isUntranslable(original_text):
       rprint(f'[green]{what} {clr.key(key)}[/green] [yellow]no need translation[/yellow] [grey62]We are not doing anything[/grey62]')
       return
 
-    if state.isDuplicateKey(self._translation_file, key):
+    if self._db.isDuplicateKey(key):
       rprint(f'[green]{what.title()} {clr.key(key)} value is [magenta]duplicate[/magenta] of another {what}.[/green] [grey62]We are not doing anything[/grey62]')
       return
 
-    retranslation_needed, translation_errors = self._reTranslateNeeded(key, original_text)
-    if state.isTranslated(hasher) and not retranslation_needed:
-      rprint(f'[green]{what.title()} {clr.key(key)} already translated[/green]')
-      return
+    translation_errors = {}
+    if self._db.keyIsTranslated(key):
+      retranslation_needed, translation_errors = self._reTranslateNeeded(key, text_4_translate)
+      stored_translation = self._db.storedTranslation(key, text_4_translate, query_context)
+      if stored_translation is not None and not retranslation_needed:
+        if stored_translation != self._translation.get_dst_language(key):
+          rprint(f'{self._stringsProgress()} [green]{what.title()}[/green] {clr.key(key)} [deep_sky_blue1]taked from translation storage[/deep_sky_blue1]')
+          print(stored_translation)
+          print('-----------------')
+          print(self._translation.get_dst_language(key))
+          self._translation.set_dst_language(key, stored_translation)
+          self._checkNeedToSave()
+          return
+        rprint(f'[green]{what.title()} {clr.key(key)} already translated[/green]')
+        return
 
-    if self._translation_storage.exists(key, original_text, query_context) and self._translation.get_dst_language(key) != self._translation_storage.get(key):
-      rprint(f'[green]{what.title()} {clr.key(key)} taked from translation storage[/green]')
-      self._translation.set_dst_language(key, self._translation_storage.get(key))
-      state.incrementTranslatedStrings(self._translation_file)
-      return
-
-    counts = state.getStringsCounts(self._translation_file)
-    rprint(f'[green]|{counts['processed']} of {counts['total']}| Translating {what} {clr.key(key)}[/green]')
-    translated_text = self._query(query_context, text, translation_errors)
-    self.translateLog(key, text, self._translation.get_dst_language(key), translated_text)
+    rprint(f'{self._stringsProgress()} [green]Translating {what} {clr.key(key)}[/green]')
+    translated_text = self._query(query_context, text_4_translate, translation_errors)
+    self.translateLog(key, text_4_translate, self._translation.get_dst_language(key), translated_text)
     self._translation.set_dst_language(key, translated_text)
-    if not state.keyIsTranslated(self._translation_file, key):
-      state.incrementTranslatedStrings(self._translation_file)
-    state.appendTranslateState(hasher)
-    self._translation_storage.set(key, original_text, translated_text, query_context)
+    self._db.setTranslated(key, original_text, translated_text, query_context)
     self._findAndTranslateSame(key, original_text, translated_text)
     self._checkNeedToSave()
 
-  def _query(self, query_context, text, translation_errors = {}):
-    queries_count = -1
+  def _query(self, query_context, text_4_translate, translation_errors = {}):
     tryes = -1
-    self._llm.switchToMainModel()
+    self._llm.switchToTranslatorModel()
     while True:
       try:
-        queries_count += 1
         tryes += 1
-        if queries_count >= self._wrongs_to_switch_to_smart:
-          self._llm.switchToSmartModel()
-        prepared_text = replace_literals_newlines_by_newlines(text).strip()
+        if len(translation_errors):
+          self._llm.switchToReasonerModel()
+        prepared_text = replace_literals_newlines_by_newlines(text_4_translate).strip()
         system_prompt = self._templating.loadTemplate('prompts', 'system.prompt').render(
             context      = query_context['object_context'],
             src_language = self._src_language,
@@ -225,9 +203,9 @@ class CTranslate:
             text         = prepared_text
           )
         query_result = self._llm.query(system_prompt, user_prompt)
-        translation_checker = CTranslationChecker(prepared_text, query_result)
+        translation_checker = CTranslationChecker(text_4_translate, query_result)
         if translation_checker.check() or tryes >= self._max_query_tryes:
-          return self._fixResponse(text, query_result)
+          return self._fixResponse(text_4_translate, query_result)
         translation_checker.show()
         translation_errors = translation_checker.errorsAsContext()
       except СOllamaError as e:
@@ -237,11 +215,8 @@ class CTranslate:
   def _translateTails(self):
     rprint(f'[yellow1]Translating orphan strings[/yellow1]')
     for key in self._translation.keys():
-      if not state.isOwnedKey(self._translation_file, key):
+      if not self._db.isOwnedKey(key):
         original_text = self._translation.get_src_language(key)
-        text = text_for_translate(original_text)
-        query_context = self._prepareQueryContext(text, {})
-        hasher = CHasher(self._translation_file, key)
-        hasher.append(text)
-        hasher.append(query_context)
-        self._translate(key, 'orphan string', original_text, text, query_context, hasher)
+        text_4_translate = text_for_translate(original_text)
+        query_context = self._prepareQueryContext(text_4_translate, {})
+        self._translate(key, 'orphan string', original_text, text_4_translate, query_context)
