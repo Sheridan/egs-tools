@@ -88,12 +88,6 @@ class CTranslate:
     for char in ['\n', '.']:
       if text[-1] != char and response[-1] == char:
         response = response[:-1]
-    for char in ['"', '`', "'"]:
-      while True:
-        if text[0] != char and response[0] == char and text[-1] != char and response[-1] == char:
-          response = response[1:-1]
-        else:
-          break
     return replace_newlines_by_literals_newlines(response).strip()
 
   def _textIsPlaceholderOrTag(self, s):
@@ -159,9 +153,6 @@ class CTranslate:
       if stored_translation is not None and not retranslation_needed:
         if stored_translation != self._translation.get_dst_language(key):
           rprint(f'{self._stringsProgress()} [green]{what.title()}[/green] {clr.key(key)} [deep_sky_blue1]taked from translation storage[/deep_sky_blue1]')
-          print(stored_translation)
-          print('-----------------')
-          print(self._translation.get_dst_language(key))
           self._translation.set_dst_language(key, stored_translation)
           self._checkNeedToSave()
           return

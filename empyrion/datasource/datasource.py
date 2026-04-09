@@ -55,8 +55,4 @@ class CDataSource:
   def exists(self, group, name):
     return name in self._sources[group]
 
-  # def objectsCount(self, group):
-  #   totals = {}
-  #   return totals
-
 datasource = CDataSource()

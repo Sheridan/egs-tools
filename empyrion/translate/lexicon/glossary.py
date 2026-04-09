@@ -11,8 +11,6 @@ class CGlossary(CLexicon):
     self._flat = {}
     self._flattern()
 
-  # def _build(self):
-
   def _flattern(self):
     for group in self._data['glossary']:
       for key, value in self._data['glossary'][group].items():

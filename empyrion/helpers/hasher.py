@@ -12,7 +12,6 @@ class CHasher:
 
   def _normalize(self, obj):
     if isinstance(obj, dict):
-      # Рекурсивно нормализуем значения словаря
       return {k: self._normalize(v) for k, v in obj.items()}
     if isinstance(obj, (list, set, tuple)):
       items = [self._normalize(item) for item in obj]

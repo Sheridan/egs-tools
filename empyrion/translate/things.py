@@ -32,16 +32,6 @@ class CTranslateThings(CTranslate):
     self._translateOne(f"thing {what}", key, self._makeContextData(thing))
     self._already_sheduled.append(key)
 
-  # def _totalPhrases(self, things):
-  #   tp = 0
-  #   for thing in things:
-  #     if 'labels' in thing and thing['labels']:
-  #       if 'labels_keys' in thing['labels'] and thing['labels']['labels_keys']:
-  #         for what in ['caption', 'description']:
-  #           if what in thing['labels']['labels_keys'] and thing['labels']['labels_keys'][what]:
-  #             tp += 1
-  #   return tp
-
   def translate(self):
     loaded_things = things.things(True)
     self._setTotalObjects(len(loaded_things))

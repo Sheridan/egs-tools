@@ -9,10 +9,6 @@ class CDatabase:
     self._connection.execute("PRAGMA foreign_keys = ON")
     self._connection.row_factory = sqlite3.Row
 
-  def tableExists(self, table):
-    cursor = self.query("SELECT count(name) FROM sqlite_master WHERE type='table' AND name=? ", (table, ))
-    return cursor.fetchone() is not None
-
   def connection(self):
     return self._connection
 

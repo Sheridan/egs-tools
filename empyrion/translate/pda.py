@@ -58,23 +58,6 @@ class CTranslatePda(CTranslate):
       for task in chapter['tasks']:
         self._translateTask(chapter_context, task)
 
-  # def _countStrings(self, pda):
-  #   count = 0
-  #   for chapter in pda:
-  #     if 'title'    in chapter: count += 1
-  #     if 'group'    in chapter: count += 1
-  #     if 'messages' in chapter: count += len(chapter['messages'])
-  #     if 'tasks' in chapter:
-  #       for task in chapter['tasks']:
-  #         if 'title'    in task: count += 1
-  #         if 'messages' in task: count += len(task['messages'])
-  #         if 'action' in task:
-  #           for action in task['action']:
-  #             if 'title'       in action: count += 1
-  #             if 'description' in action: count += 1
-  #             if 'messages'    in action: count += len(action['messages'])
-  #   return count
-
   def translate(self):
     pda = CPda().pda()
     self._setTotalObjects(len(pda))

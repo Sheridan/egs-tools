@@ -38,6 +38,6 @@ class CTemplating:
       return self._j2env.from_string(f.read().strip())
 
   def cleanString(self, string):
-     return '\n'.join(line for line in string.splitlines() if line.strip())
+    return '\n'.join(line for line in string.splitlines() if line.strip())
 
 templating = CTemplating()

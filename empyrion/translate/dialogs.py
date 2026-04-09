@@ -18,7 +18,7 @@ class CTranslateDialogs(CTranslate):
 
   def _loadTexts(self, key_name, keys):
     result = {}
-    seen_texts = set()  # 🔹 Set используется ТОЛЬКО для проверки вхождения (O(1)), порядок не важен
+    seen_texts = set()
     i = 0
     for key in keys:
       src_text = text_for_context(self._translation.get_src_language(key))
@@ -55,7 +55,6 @@ class CTranslateDialogs(CTranslate):
       for phrase in dialog['phrases']:
         counter[phrase] = counter.get(phrase, 0) + 1
 
-    # 🔹 Явная сортировка частых фраз гарантирует одинаковый порядок удаления
     common_phrases = sorted([k for k, v in counter.items() if v > 1])
 
     for dialog in dialogs:

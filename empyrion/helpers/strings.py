@@ -2,11 +2,6 @@ import re
 from difflib import SequenceMatcher
 from empyrion.helpers.bracketsreplacer import CBracketsReplacer
 
-# def remove_tags(text):
-#   text = re.sub(r'\[[a-zA-Z0-9-/]+?\]', '', text)
-#   text = re.sub(r'<[a-zA-Z0-9#/]+?>', '', text)
-#   return text
-
 def replace_namebrackets(text):
   return CBracketsReplacer(text).replace()
 

@@ -14,25 +14,23 @@ class CStateDB:
     self._create()
 
   def _create(self) -> None:
-    if not database.tableExists('translation'):
-      database.query("""
-          create table if not exists translation (
-              file            text not null,
-              key             text not null,
-              original_text   text,
-              translated_text text,
-              context_hash    text,
-              PRIMARY KEY (file, key))
-      """)
-    if not database.tableExists('slave_keys'):
-      database.query("""
-          create table if not exists slave_keys (
-              file   text not null,
-              key    text not null,
-              master text,
-              has_owner  int,
-              PRIMARY KEY (file, key))
-      """)
+    database.query("""
+        create table if not exists translation (
+            file            text not null,
+            key             text not null,
+            original_text   text,
+            translated_text text,
+            context_hash    text,
+            PRIMARY KEY (file, key))
+    """)
+    database.query("""
+        create table if not exists slave_keys (
+            file   text not null,
+            key    text not null,
+            master text,
+            has_owner  int,
+            PRIMARY KEY (file, key))
+    """)
 
   def _totalStrings(self, source):
     if source not in self._total_strings:
