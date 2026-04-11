@@ -3,12 +3,13 @@ from empyrion.helpers.hasher import CHasher
 from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
+from rich import print as rprint
 from empyrion.datasource.datasource import datasource
 
 database = CDatabase("trash/progress.db")
 
 class CStateDB:
-  def __init__(self, translation_file):
+  def __init__(self, translation_file = None):
     self._translation_file = translation_file
     self._total_strings = {}
     self._create()
@@ -24,13 +25,52 @@ class CStateDB:
             PRIMARY KEY (file, key))
     """)
     database.query("""
-        create table if not exists slave_keys (
-            file   text not null,
-            key    text not null,
-            master text,
+        create table if not exists metadata (
+            file       text not null,
+            key        text not null,
+            master     text,
             has_owner  int,
             PRIMARY KEY (file, key))
     """)
+    database.query("""
+        create table if not exists options (
+            name text primary key,
+            value text)
+    """)
+
+  def option(self, name):
+    value = database.query('select value from options where name=? limit 1', (name, )).fetchone()
+    if value is not None:
+      return value['value']
+    return None
+
+  def setOption(self, name, value):
+    v = self.option(name)
+    if v is not None:
+      database.query('update options set value=? where name=?', (value, name))
+    else:
+      database.query('insert into options (name, value) values (?,?)', (name, value))
+
+  def calcTranslationHash(self):
+    hasher = CHasher(self._translation_file, '')
+    for key in datasource[self._translation_file].keys():
+      hasher.append(key)
+      hasher.append(datasource[self._translation_file].get_src_language(key))
+    return hasher.hash()
+
+  def checkTranslationHash(self):
+    option_name = f'{self._translation_file}_hash'
+    rprint(f'[magenta3]Updating {self._translation_file} hash[/magenta3]')
+    calculated_hash = self.calcTranslationHash()
+    stored_hash = self.option(option_name)
+    rprint(f'[dark_orange3]{self._translation_file} hash: {calculated_hash}; Stored hash: {stored_hash}[/dark_orange3]')
+    if stored_hash != calculated_hash:
+      rprint(f'[red1]Hashes not equal for {self._translation_file}: updated translation file (?). Cleanup some metadata... [/red1]')
+      self._cleanupMetadata()
+      self.setOption(option_name, calculated_hash)
+
+  def _cleanupMetadata(self):
+    database.query(f'delete from metadata where file=?', (self._translation_file, ))
 
   def _totalStrings(self, source):
     if source not in self._total_strings:
@@ -38,7 +78,7 @@ class CStateDB:
     return self._total_strings[source]
 
   def keyIsTranslated(self, key):
-    cursor = database.query('select 1 from translation where file = ? and key = ? limit 1', (self._translation_file, key, ))
+    cursor = database.query('select 1 from translation where file=? and key=? limit 1', (self._translation_file, key))
     return cursor.fetchone() is not None
 
   def _translationHash(self, key, query_context):
@@ -63,39 +103,39 @@ class CStateDB:
 
   # duplicates and owners
   def _isSlaveExists(self, key):
-    cursor = database.query('select 1 from slave_keys where file=? and key=? limit 1', (self._translation_file, key, ))
+    cursor = database.query('select 1 from metadata where file=? and key=? limit 1', (self._translation_file, key, ))
     return cursor.fetchone() is not None
 
   def appendDuplicateKey(self, master_key, key):
     if self._isSlaveExists(key):
-      database.query('update slave_keys set master=? where file=? and key=?', (master_key, self._translation_file, key) )
+      database.query('update metadata set master=? where file=? and key=?', (master_key, self._translation_file, key) )
     else:
-      database.query('insert into slave_keys (file, key, master) values (?,?,?)', (self._translation_file, key, master_key) )
+      database.query('insert into metadata (file, key, master) values (?,?,?)', (self._translation_file, key, master_key) )
 
   def isDuplicateKey(self, key):
-    cursor = database.query('select 1 from slave_keys where file=? and key=? and master is not null limit 1', (self._translation_file, key))
+    cursor = database.query('select 1 from metadata where file=? and key=? and master is not null limit 1', (self._translation_file, key))
     return cursor.fetchone() is not None
 
   # def ownedKeys(self):
-  #   cursor = database.query('select key from slave_keys where file=? and has_owner=1', (self._translation_file, ))
+  #   cursor = database.query('select key from metadata where file=? and has_owner=1', (self._translation_file, ))
   #   return [row[0] for row in cursor.fetchall()]
 
   def appendOwnedKey(self, key):
     if self._isSlaveExists(key):
-      database.query('update slave_keys set has_owner=1 where file=? and key=?', (self._translation_file, key) )
+      database.query('update metadata set has_owner=1 where file=? and key=?', (self._translation_file, key) )
     else:
-      database.query('insert into slave_keys (file, key, has_owner) values (?,?,1)', (self._translation_file, key) )
+      database.query('insert into metadata (file, key, has_owner) values (?,?,1)', (self._translation_file, key) )
 
   def isOwnedKey(self, key):
-    cursor = database.query('select 1 from slave_keys where file=? and key=? and has_owner == 1 limit 1', (self._translation_file, key))
+    cursor = database.query('select 1 from metadata where file=? and key=? and has_owner == 1 limit 1', (self._translation_file, key))
     return cursor.fetchone() is not None
 
   def getStringsCounts(self):
     processed = database.query('SELECT count(*) as count FROM translation where file=?', (self._translation_file, )).fetchone()
-    duplicates = database.query('SELECT count(*) as count FROM slave_keys where file=? and master is not null', (self._translation_file, )).fetchone()
+    duplicates = database.query('SELECT count(*) as count FROM metadata where file=? and master is not null', (self._translation_file, )).fetchone()
     return  {
               'total': self._totalStrings(self._translation_file),
-              'processed': processed['count'] + duplicates['count']
+              'translated': processed['count'] + duplicates['count']
             }
 
   def showTranslateState(self):
@@ -104,11 +144,11 @@ class CStateDB:
                                 select
                                     file,
                                     (select count(*) from translation t where t.file = f.file) as translation_count,
-                                    (select count(*) from slave_keys s where s.file = f.file and s.master is not null) as duplicates
+                                    (select count(*) from metadata s where s.file = f.file and s.master is not null) as duplicates
                                 from (
                                     select file from translation
                                     union
-                                    select file from slave_keys
+                                    select file from metadata
                                 ) as f
                                 order by file;
                                 """)

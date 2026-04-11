@@ -3,9 +3,6 @@ version = 0.72
 translate:
 	python main.py --translation
 
-rmduplicates:
-	python main.py --rmduplicates
-
 dot:
 	python main.py --graph
 

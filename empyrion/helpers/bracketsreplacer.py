@@ -19,13 +19,13 @@ class CBracketsReplacer:
     def repl_square(self, match):
         inner = match.group(1)
         if self.should_replace(inner):
-            return f'〔{inner}〕'
+            return f'┃ {inner} ┃'
         return match.group(0)
 
     def repl_angle(self, match):
         inner = match.group(1)
         if self.should_replace(inner):
-            return f'⦑{inner}⦒'   # или ⦑⦒ по желанию
+            return f'▷ {inner} ◁'   # или ⦑⦒ по желанию
         return match.group(0)
 
     def replace(self) -> str:

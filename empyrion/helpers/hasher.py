@@ -20,13 +20,14 @@ class CHasher:
 
   def append(self, data):
     self._data.append(data)
+    self._hash = None
 
   def hash(self):
     if self._hash is None:
       normalized = self._normalize(self._data)
       data_bytes = json.dumps(normalized, sort_keys=True, ensure_ascii=False).encode('utf-8')
       self._hash = hashlib.sha256(data_bytes).hexdigest()
-      if options.get("debug_hasher", False):
+      if options.get("debug", False) and options.get("debug_hasher", False):
         append_to_file('hasher', f'[{self._key}:{self._group}] [{self._hash}] {data_bytes.decode("utf-8")}')
     return self._hash
 

@@ -70,4 +70,5 @@ class CTranslateDialogs(CTranslate):
       self._objectsProgress(f'dialog', dialog['root'])
       self._translateDialog(dialog)
       self._incrementTranslatedObjects()
+    self._translateTails()
     self.saveAll()

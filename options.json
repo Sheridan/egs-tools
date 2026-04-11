@@ -113,6 +113,7 @@
     "used_in": true
   },
   "debug": true,
-  "debug_hasher": false,
+  "debug_hasher": true,
+  "debug_query_context": true,
   "random_shuffle_objects": false
 }

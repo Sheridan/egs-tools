@@ -19,6 +19,7 @@ Every line in PLACEHOLDERS LIST section below is a literal placeholders:
 Placeholders rules:
 * Treat each exactly as shown, including brackets and symbols.
 * NEVER delete, invent, change or insert new placeholders.
+* Preserve placeholders case exactly as shown
 * Do not interpret them as natural language or instructions.
 * Anything text not included in the PLACEHOLDERS LIST needs to be translated.
 {% endif %}
@@ -33,6 +34,7 @@ Every line in ANCHORS LIST below is a literal anchors:
 Anchors rules:
 * Treat each exactly as shown. When translating, place them in the same context as in the original text.
 * NEVER delete, invent, change or insert new anchors.
+* Preserve anchors case exactly as shown
 * Do not interpret them as natural language or instructions.
 * Anything text not included in the ANCHORS LIST needs to be translated.
 {%- endif %}
@@ -53,7 +55,7 @@ Tags rules:
 General rules:
 * Translate only the source text provided in the final user message.
 * NEVER use asterisks, underscores, or any other formatting syntax unless they are literally present in the source text as characters to be translated.
-* NEVER quote a text or parts of a text if the quotes is not in the original text.
+* Do not add quotation marks around the translated output unless they appear in the source string
 * When generating any text in {{ dst_language }}, strictly follow the orthographic, punctuation, and grammatical (morphological and syntactic) norms of the standard literary {{ dst_language }} language, avoiding colloquial and vernacular mistakes as well as unjustified borrowings and bureaucratic clichés, unless the task explicitly requires otherwise.
 * Preserve ALL non-linguistic formatting exactly: spaces,{% if is_tags_in_text %} tags,{% endif %}{% if is_atanchors_in_text %} anchors,{% endif %}{% if is_placeholders_in_text %} placeholders,{% endif %} line breaks, escape sequences and numerals.
 * Use colloquial or strong language when the source text contains equivalent register (e.g., slang, profanity, military jargon)
@@ -84,7 +86,7 @@ Glossary rules:
 * Words and phrases from the glossary have the highest priority in translation.
 * Use the glossary to clarify the meaning of words and phrases.
 * Check and correct grammar after using words and phrases from the glossary.
-* Translate abbreviations using the glossary.
+* Translate acronyms and proper names using the glossary.
 * The format of the entry in the glossary: `{{ src_language }} : {{ dst_language }}`
 Every line in GLOSSARY LIST below is a glossary entry.
 === BEGIN GLOSSARY LIST === {{- "\n" }}
@@ -123,18 +125,18 @@ characteristics: {{- "\n" }}
 {%-   endif -%}
 {%- endfor -%}
 {% if contexts.exists | length > 0 -%}
-Context rules:
-* Use context only as an auxiliary context for more accurate translation
-Context below:
-=== BEGIN CONTEXT === {{- "\n" }}
+Metadata rules:
+* Metadata is additional information about the game world, preceding lines, or UI. Use it to resolve ambiguity (e.g., homonyms, pronoun references) but never contradict the literal source text
+Metadata below:
+=== BEGIN METADATA === {{- "\n" }}
 {%-   for group in contexts.exists -%}
-=== BEGIN CONTEXT GROUP {{ group }} === {{- "\n" }}
+=== BEGIN METADATA GROUP {{ group }} === {{- "\n" }}
 {%-     for key, value in context[group].items() -%}
 {{ key }} : {{ value }} {{- "\n" }}
 {%-     endfor -%}
-=== END CONTEXT GROUP {{ group }} === {{- "\n" }}
+=== END METADATA GROUP {{ group }} === {{- "\n" }}
 {%-   endfor -%}
-=== END CONTEXT === {{- "\n" }}
+=== END METADATA === {{- "\n" }}
 {%- endif %}
 
 Rules priority: {{- "\n" }}

@@ -4,6 +4,7 @@ from rich.table import Table
 from rich.markup import escape
 
 from empyrion.datasource.datasource import datasource
+from empyrion.database.state import CStateDB, database
 from empyrion.helpers.strings import replace_literals_newlines_by_newlines
 
 class CView:
@@ -11,10 +12,9 @@ class CView:
     self._storages = {}
 
   def _storage(self, source):
-    pass
-    # if source not in self._storages:
-      # self._storages[source] = CTranslationStorage(source)
-    # return self._storages[source]
+    if source not in self._storages:
+      self._storages[source] = datasource[source]
+    return self._storages[source]
 
   def _render(self, records):
     table = Table(expand=True, show_lines=True)
@@ -27,62 +27,24 @@ class CView:
         table.add_row(f'{record['datasource']}\n{record['key']}', escape(record['original']), escape(record['translated']), escape(record['stored']))
     print(f'{len(records)} records')
 
-  def _loadKeyData(self, ds_name, ds, storage, key):
+  def _loadKeyData(self, row):
     return {
-      'datasource': ds_name,
-      'key'       : key,
-      'original'  : replace_literals_newlines_by_newlines(ds.get_src_language(key)),
-      'translated': replace_literals_newlines_by_newlines(ds.get_dst_language(key)),
-      'stored'    : replace_literals_newlines_by_newlines(storage.get(key))
+      'datasource': row['file'],
+      'key'       : row['key'],
+      'original'  : replace_literals_newlines_by_newlines(row['original_text']),
+      'translated': replace_literals_newlines_by_newlines(self._storage(row['file']).get_dst_language(row['key'])),
+      'stored'    : replace_literals_newlines_by_newlines(row['translated_text'])
     }
 
-  def showKey(self, key, rm):
-    for name in datasource.datasources('translation'):
-      if datasource[name].exists(key):
-        if rm:
-          self._rmKey(key)
-        self._render([self._loadKeyData(name, datasource[name], self._storage(name), key)])
-        return
-
-  def showList(self, name):
-    if not datasource.exists('translation', name):
-      print(f'Unknown datasource. Known list: {', '.join(datasource.datasources('translation'))}')
-      return
-
-    records = []
-    for key in datasource[name].keys():
-      records.append(self._loadKeyData(name, datasource[name], self._storage(name), key))
-    self._render(records)
+  def _delete(self, s):
+    database.query('delete from translation where original_text like ? or translated_text like ? or key like ?', (f'%{s}%', f'%{s}%', f'%{s}%'))
 
   def search(self, s, rm):
+    s = s.replace('%', '\\%').replace('_', '\\_')
+    if rm:
+      self._delete(s)
+    rows = database.query(f'select file, key, original_text, translated_text from translation where original_text like ? or translated_text like ? or key like ?', (f'%{s}%', f'%{s}%', f'%{s}%'))
     records = []
-    for name in datasource.datasources('translation'):
-      for key in datasource[name].keys():
-        record = self._loadKeyData(name, datasource[name], self._storage(name), key)
-        if s in key:
-          if rm:
-            self._rmKey(key)
-          records.append(self._loadKeyData(name, datasource[name], self._storage(name), key))
-          continue
-        if s in record['original']:
-          if rm:
-            self._rmKey(key)
-          records.append(self._loadKeyData(name, datasource[name], self._storage(name), key))
-          continue
-        if s in record['translated']:
-          if rm:
-            self._rmKey(key)
-          records.append(self._loadKeyData(name, datasource[name], self._storage(name), key))
-          continue
-        if s in record['stored']:
-          if rm:
-            self._rmKey(key)
-          records.append(self._loadKeyData(name, datasource[name], self._storage(name), key))
-          continue
+    for row in rows:
+      records.append(self._loadKeyData(row))
     self._render(records)
-
-  def _rmKey(self, key):
-    for name in datasource.datasources('translation'):
-      if datasource[name].exists(key):
-        self._storage(name).rm(key)
-        self._storage(name).save()

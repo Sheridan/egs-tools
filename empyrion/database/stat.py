@@ -66,9 +66,9 @@ class CStatDB:
     if x is None:
       return '-'
     if isinstance(x, int):
-      return str(x)
+      return f'{x:_}'.replace('_', '`')
     if isinstance(x, float):
-      return f'{x:.2f}'
+      return f'{x:_.2f}'.replace('_', '`')
     return str(x)
 
   def _fmtNum(self, row, name):

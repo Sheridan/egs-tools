@@ -66,4 +66,9 @@ class CGlossary(CLexicon):
         result.add(key)
     return sorted(result)
 
+  def tryHardcode(self, s):
+    if s in self._data['hardcode']:
+      return self._data['hardcode'][s]
+    return None
+
 glossary = CGlossary()

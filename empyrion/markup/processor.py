@@ -20,7 +20,7 @@ class CProcessor:
       original_list  = self.extract(original)
       translated_list = self.extract(translated)
       if len(original_list) > 0 or len(translated_list) > 0:
-        table = Table(title=escape(message), show_lines=True, expand=True)
+        table = Table(title=escape(message.split('. ')[0]), show_lines=True, expand=True)
         table.add_column("Original"  , style="magenta", no_wrap=False, highlight=False)
         table.add_column("Translated", style="yellow" , no_wrap=False, highlight=False)
         table.add_row(Pretty(original_list, indent_size=2), Pretty(translated_list, indent_size=2))
